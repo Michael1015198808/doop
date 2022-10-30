@@ -38,18 +38,7 @@ public class Main {
             SootParameters.showHelp();
             return;
         }
-	for (String arg : args) {
-            System.out.println(arg);
-        }
-        BufferedReader bufferedReader = new BufferedReader(new FileReader(new File(args[1])));
-        List<String> params = new ArrayList<>();
-        String line = "";
-        while(null!=(line=bufferedReader.readLine())){
-            params.add(line);
-        }
-        for(String oneline: params){
-            System.out.println(oneline);
-        }
+	
 
         try {
             produceFacts(args);
@@ -94,10 +83,6 @@ public class Main {
             logWarn(logger, "WARNING: SSA not enabled, generating Jimple instead of Shimple");
             Options.v().set_output_format(Options.output_format_jimple);
         }
-
-        //if (sootParameters._tamiflexLog != null) {
-        //    Options.v().setPhaseOption("cg", "reflection-log:" + sootParameters._tamiflexLog);
-        //}
 
         //soot.options.Options.v().set_drop_bodies_after_load(true);
         Options.v().set_keep_line_number(true);
@@ -236,40 +221,11 @@ public class Main {
             scene.addBasicClass(extraClass, SootClass.BODIES);
         }
 
-        Set<SootClass> xixixi3 = ConcurrentHashMap.<SootClass>newKeySet();
-        xixixi3.addAll(scene.getClasses());
-        System.out.println("Total classes in Scene: xixixi3 :" + xixixi3.size());
-
-
-        System.out.println("debugiing infooooooo basic class size1 "+scene.getBasicClasses().size());
-     
         if (sootParameters._refLog != null) {
             addReflectionClasses(scene, sootParameters._refLog);
         }
 
         scene.loadNecessaryClasses();
-        CGOptions options = new CGOptions(PhaseOptions.v().getPhaseOptions("cg"));
-        String log = options.reflection_log();
-        System.out.println("debugiing infooooooo reflection_log "+ log);
-
-        System.out.println("debugiing infooooooo basic class size2 "+scene.getBasicClasses().size());
-
-        System.out.println("debugiing infoooooooo"+Options.v().oaat());
-        System.out.println("debugiing infoooooooo class"+Options.v().classes().size());
-        System.out.println("debugiing infoooooooo process_dir"+Options.v().process_dir().size());
-
-
-        System.out.println("debugiing infoooooooo dynamic"+Options.v().dynamic_class().size());
-        System.out.println("debugiing infoooooooo dynamic"+Options.v().dynamic_dir().size());
-        System.out.println("debugiing infoooooooo dynamic"+Options.v().dynamic_package().size());
-
-
-	System.out.println(scene instanceof ModuleScene);
-
-        Set<SootClass> xixixi4 = ConcurrentHashMap.<SootClass>newKeySet();
-        xixixi4.addAll(scene.getClasses());
-        System.out.println("Total classes in Scene: xixixi4 :" + xixixi4.size());
-
 
         /*
          * This part should definitely appear after the call to
