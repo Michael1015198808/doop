@@ -60,7 +60,7 @@ class DoopAnalysisFactory implements AnalysisFactory<DoopAnalysis> {
 			"web-app-sensitive"                  : "WebAppSensitiveConfiguration",
 			"sticky-2-object-sensitive"          : "StickyTwoObjectSensitiveConfiguration",
 			"adaptive-2-object-sensitive+heap"   : "AdaptiveTwoObjectSensitivePlusHeapConfiguration",
-			"correlation"                        : "CorrelationConfiguration",
+			"cut-shortcut"                       : "CutshortcutConfiguration",
 			"collection-3obj"                    : "Collection3objConfiguration"
 	]
 
@@ -163,8 +163,8 @@ class DoopAnalysisFactory implements AnalysisFactory<DoopAnalysis> {
 //				return new SouffleGenericsMultiPhaseAnalysis(options, context, commandsEnv)
 //			}
 			else {
-				if(options.ANALYSIS.value == "correlation"){
-					options.CORRELATION.value = true
+				if(options.ANALYSIS.value == "cut-shortcut"){
+					options.CUTSHORTCUT.value = true
 				}
 				if(options.ANALYSIS.value == "collection-3obj"){
 					options.COLLECTION3OBJ.value = true

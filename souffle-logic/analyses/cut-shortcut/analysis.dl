@@ -7,7 +7,7 @@
 // This is emulated by creating a single Context object and a single HContext
 // object, which are used everywhere.(same as normal context-insensitive analysis in doop)
 
-.comp CorrelationConfiguration : AbstractConfiguration {
+.comp CutshortcutConfiguration : AbstractConfiguration {
     
   .type Context = symbol
   .type HContext = symbol

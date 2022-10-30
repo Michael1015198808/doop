@@ -313,12 +313,12 @@ abstract class DoopAnalysis extends Analysis implements Runnable {
         }
 
 
-        if(options.CORRELATION.value){
-            File assignedCorrelationDir = new File("${Doop.doopHome}/assignedCorrelation")
-            File[] files = assignedCorrelationDir.listFiles()
-            for(File origAssignedCorrelation: files){
-                File destAssignedCorrelation = new File(factsDir,origAssignedCorrelation.getName())
-                Files.copy(origAssignedCorrelation.toPath(),destAssignedCorrelation.toPath(),StandardCopyOption.REPLACE_EXISTING)
+        if(options.CUTSHORTCUT.value){
+            File defaultContainerConfigDir = new File("${Doop.doopHome}/defaultContainerConfig")
+            File[] files = defaultContainerConfigDir.listFiles()
+            for(File origDefaultContainerConfig: files){
+                File destDefaultContainerConfig = new File(factsDir,origDefaultContainerConfig.getName())
+                Files.copy(origDefaultContainerConfig.toPath(),destDefaultContainerConfig.toPath(),StandardCopyOption.REPLACE_EXISTING)
             }
         }
 

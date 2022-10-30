@@ -9,9 +9,9 @@
 //.output HostOfArrayIndex(IO="file",filename="HostOfArrayIndex.csv",delimiter="\t")
 
 //for main pta anslysis
-//deal with VarpointsTo:- CollectionCorrelationAssign [type check need here]
-.decl CollectionCorrelationAssign(?arg:Var, ?result:Var)
-//.output CollectionCorrelationAssign(IO="file",filename="CollectionCorrelationAssign.csv",delimiter="\t")
+//deal with VarpointsTo:- CollectionCutshortcutAssign [type check need here]
+.decl CollectionCutshortcutAssign(?arg:Var, ?result:Var)
+//.output CollectionCutshortcutAssign(IO="file",filename="CollectionCutshortcutAssign.csv",delimiter="\t")
 //isRelatedCollectionOutInvoke method call
 .decl RelatedCollectionOutMethod(?method:Method)
 //.output RelatedCollectionOutMethod(IO="file",filename="RelatedCollectionOutMethod.csv",delimiter="\t")
@@ -84,7 +84,6 @@ executeInArgumentToHost(?arg, ?obj, "Col-Value"):-
     ?objType = "sun.security.jca.ProviderList$3",
     ReturnVar(?arg, ?method).
 
-//propagateHostAndKind method in tai-e
 //host passer
 HostOfVar(?result, ?generatedKind, ?host):-
     HostOfVar(?var, ?containerKind, ?host),
@@ -125,7 +124,6 @@ HostOfVar(?result, ?generatedKind, ?host):-
     ?generatedKind = "MAP_VALUE_ITR".
 
 
-//plugin.OnNewCallEdge method
 CorrelationExtenderNeedProcessing(?invocation, ?callee):-
     CallGraphEdge(_, ?invocation, _, ?callee),
     CorrelationExtender(?callee, _, _).
@@ -168,7 +166,7 @@ HostOfVar(?this, ?kind, ?host):-
     HostOfVar(?base, ?kind, ?host),
     ?class = "java.util.Hashtable$Enumerator".
 
-//processArrayInitializer
+//process ArrayInitializer
 VirtualArrayOfCollectionVar(?var, ?collectionVar),
 VirtualArrayOfArray(?var, ?arrayVar),
 isVirtualVar(?var),
@@ -219,7 +217,7 @@ executeInArgumentToHost(?arg, ?obj, "Col-Value"):-
     isHostClass(?objType),
     EntrySetArgVar(?objType, ?arg).
 
-//processCorrelationExtender method in tai-e
+//process CorrelationExtender
 ExtendCorrelation(?arg1, ?arg2):-
     CorrelationExtenderNeedProcessing(?invocation, ?callee),
     CorrelationExtender(?callee, ?index0, ?index1),
@@ -228,12 +226,6 @@ ExtendCorrelation(?arg1, ?arg2):-
     !MethodFormalParamAndThisIncludingLocal(-1, ?caller, ?base),
     InvocationActualParamAndBase(?index0, ?invocation, ?arg1),
     InvocationActualParamAndBase(?index1, ?invocation, ?arg2).
-
-// executeInArgumentToHost(?arg, ?largerhost, ?category):-
-//     ExtendCorrelation(?larger, ?smaller),
-//     HostOfVar(?larger, _, ?largerhost),
-//     HostOfVar( ?smaller, _, ?smallerhost),
-//     executeInArgumentToHost(?arg, ?smallerhost, ?category).
 
 executeInArgumentToHost(?arg, ?largerhost, "Col-Value"):-
     ExtendCorrelation(?larger, ?smaller),
@@ -278,19 +270,17 @@ InArgumentToHost(?actual, ?callee, ?index, ?host):-
     InArgumentToHostTemp(?actual, ?callee, ?index, ?base),
     HostOfVar(?base, _, ?host).
 
-//inArgumentToHost method in tai-e
 executeInArgumentToHost(?arg, ?host, ?category) :-
     InArgumentToHost(?arg, ?callee, ?index, ?host),
     MethodParameterConstraint(?callee, ?index, ?cons, ?category),
     basic.SubtypeOf(?hostType, ?cons),
     Value_Type(?host, ?hostType).
 
-//represent addSuperHost method
-CollectionCorrelationAssign(?arg, ?result) :-
+//add super host
+CollectionCutshortcutAssign(?arg, ?result) :-
     executeInArgumentToHost(?arg, ?host, ?category),
     OutResultToHost(?result, ?host, ?category).
 
-//processCollectionOutInvoke(callsite, callee) <=> callGraphEdge(_, ?invo, _, ?callee) 
 .decl OutResultToHostTemp(?result:Var, ?base:Var, ?category:symbol)//optimize
 //.output OutResultToHostTemp(IO="file",filename="OutResultToHostTemp.csv",delimiter="\t")
 
@@ -395,9 +385,9 @@ OutResultToHost(?result, ?host, "Col-Value"):-
     OutResultHostTempOpt5(?result, ?base),
     HostOfVar(?base, "COL_ITR", ?host).
 
-//VPT & host & kind pass for collection-correlation assign
+//VPT & host & kind pass for collection-cutshortcut assign
 HostOfVar(?result, ?kind, ?host):-
-    CollectionCorrelationAssign(?arg, ?result),
+    CollectionCutshortcutAssign(?arg, ?result),
     HostOfVar(?arg, ?kind, ?host).
 
 //optimize
@@ -410,11 +400,11 @@ VarPointsTo("<<immutable-hcontext>>", ?value, "<<immutable-context>>", ?result):
 
     
 CollectionVarPointsToTemp(?arg, ?result, ?allowedType):-    
-    CollectionCorrelationAssign(?arg, ?result),
+    CollectionCutshortcutAssign(?arg, ?result),
     Var_Type(?result, ?allowedType).
 
 
-//shouldStopEdge in tai-e
+//shouldStopEdge
 NotPassingReturnAssignFrom(?return):-
     ReturnVar(?return, ?method),
     Method_DeclaringType(?method, ?classType),

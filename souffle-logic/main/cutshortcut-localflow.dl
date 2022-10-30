@@ -2,16 +2,12 @@
 .decl DirectlyReturnParams(?method:Method, ?index:number)
 // .output DirectlyReturnParams(IO="file",filename="DirectlyReturnParams.csv",delimiter="\t")
 
-//index = -1 -> this, others -> formal param
-// .decl VarAssignedFromFormalParam(?method:Method, ?var:Var, ?index:number)
-// .output VarAssignedFromFormalParam(IO="file",filename="VarAssignedFromFormalParam.csv",delimiter="\t")
-
 .decl SpecialHandledReturnVar(?var:Var)
 // .output SpecialHandledReturnVar(IO="file",filename="SpecialHandledReturnVar.csv",delimiter="\t")
 
 //type check here
-.decl IDCorrelationAssign(?from:Var, ?to:Var)
-// .output IDCorrelationAssign(IO="file",filename="IDCorrelationAssign.csv",delimiter="\t")
+.decl IDCutshortcutAssign(?from:Var, ?to:Var)
+// .output IDCutshortcutAssign(IO="file",filename="IDCutshortcutAssign.csv",delimiter="\t")
 
 .decl IdendityThisToBaseHostPassingTemp(?tomethod:Method, ?result:Var)
 //special handling with 'this' to improve some precision
@@ -25,7 +21,7 @@ VarPointsTo("<<immutable-hcontext>>", ?obj, "<<immutable-context>>", ?result):-
     AssignReturnValue(?invocation,?result),
     DirectlyReturnParams(?tomethod, -1).
 
-#ifdef COLLECTION 
+#ifdef CONTAINER 
 HostOfVar(?result, ?kind, ?host):-
     IdendityThisToBaseHostPassingTemp(?method, ?result),
     ReturnVar(?return, ?method),
@@ -47,27 +43,27 @@ VarPointsTo("<<immutable-hcontext>>", ?value, "<<immutable-context>>", ?result):
 SpecialHandledReturnVar(?return),
 DirectlyReturnParams(?method, ?index):-
     ReturnVar(?return, ?method),
-#ifdef COLLECTION 
+#ifdef CONTAINER 
     !RelatedCollectionOutMethod(?method),
 #endif
     VarFromParamIndex(?method, ?return, ?index).
 
-IDCorrelationAssign(?arg, ?result):-
+IDCutshortcutAssign(?arg, ?result):-
     CallGraphEdge(_, ?invocation, _, ?callee),
     AssignReturnValue(?invocation, ?result),
     DirectlyReturnParams(?callee, ?index),
     ?index != -1,
     InvocationActualParamAndBase(?index, ?invocation, ?arg).
 
-//deal with IDCorrelationAssign
-#ifdef COLLECTION
+//deal with IDCutshortcutAssign
+#ifdef CONTAINER
 HostOfVar(?result, ?kind, ?host):-
-    IDCorrelationAssign(?arg, ?result),
+    IDCutshortcutAssign(?arg, ?result),
     HostOfVar(?arg, ?kind, ?host).
 #endif
 //may need optimize
 VarPointsTo("<<immutable-hcontext>>", ?value, "<<immutable-context>>", ?result):-
-    IDCorrelationAssign(?arg, ?result),
+    IDCutshortcutAssign(?arg, ?result),
     Var_Type(?result, ?allowedType),
     VarPointsTo(_, ?value, _, ?arg),
     Value_Type(?value, ?type),
@@ -127,7 +123,7 @@ VarFromParamIndex(?inmethod, ?to, ?index):-
 //special deal with tamiflex call edge to improve some precision
 #ifdef TAMIFLEX
 //for index!=-1
-IDCorrelationAssign(?virtualArgs, ?result):-
+IDCutshortcutAssign(?virtualArgs, ?result):-
     TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
     Tamiflex_Invoke_Simple(?invocation, _),
     AssignReturnValue(?invocation, ?result),
@@ -146,13 +142,13 @@ VarPointsTo("<<immutable-hcontext>>", ?value, "<<immutable-context>>", ?result):
     VarPointsTo(_, ?value, _, ?base),
     TamiflexIdendityThisPassingTemp(?base, ?result).
 
-#ifdef COLLECTION 
+#ifdef CONTAINER 
 HostOfVar(?result, ?kind, ?host):-
     AssignReturnValue(?invocation,?result),
     Tamiflex_Invoke(_, ?invocation, ?callee),
     TamiflexInvocationBase(?invocation, ?base),
     DirectlyReturnParams(?callee, -1),
     HostOfVar(?base, ?kind, ?host).
-#endif //COLLECTION
+#endif //CONTAINER
 
 #endif //TAMIFLEX

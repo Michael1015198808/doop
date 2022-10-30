@@ -38,9 +38,9 @@
 #include "zipper-pre-analysis.dl"
 #endif // X_ZIPPER_PRE_ANALYSIS
 
-#ifdef CORRELATION
-#include "correlation-declarations.dl"
-#endif //CORRELATION
+#ifdef CUTSHORTCUT
+#include "cutshortcut-declarations.dl"
+#endif //CUTSHORTCUT
 
 #ifdef COLLECTION3OBJ
 #include "collection-methods.dl"

@@ -93,7 +93,7 @@ VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
 // inputs to VarPointsTo
 
 
-#if defined(CORRELATION) && defined(COLLECTION)
+#if defined(CUTSHORTCUT) && defined(CONTAINER)
 HostOfVar(?to, ?kind, ?host):-
   HostOfVar(?from, ?kind, ?host),
   AssignLocal(?from, ?to, _).
@@ -107,7 +107,7 @@ VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
  */
 
 		
-#if defined(CORRELATION) && defined(COLLECTION)
+#if defined(CUTSHORTCUT) && defined(CONTAINER)
 HostOfVar(?to, ?kind, ?host) :-
   OptAssignCast(_, ?to, ?from),
   HostOfVar(?from, ?kind, ?host).
@@ -132,7 +132,7 @@ LoadHeapInstanceField(?ctx, ?to, ?sig, ?basehctx, ?basevalue) :-
   LoadInstanceField(?base, ?sig, ?to, _),
   VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base).
 
-#if defined(CORRELATION) && defined(STOREPART)
+#if defined(CUTSHORTCUT) && defined(STOREPART)
 StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?ctx, ?from) :-
   StoreInstanceField(?from, ?base, ?signature, _),
   VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base),
@@ -141,7 +141,7 @@ StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?ctx, ?from) :-
 StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?ctx, ?from) :-
   StoreInstanceField(?from, ?base, ?signature, _),
   VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base).
-#endif //CORRELATION && STOREPART
+#endif //CUTSHORTCUT && STOREPART
 
 #if !defined(FEATHERWEIGHT_ANALYSIS) && !defined(DISABLE_POINTS_TO)
 //// Much slower in Souffle, for large analyses
@@ -162,8 +162,7 @@ VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
   NotSpecialObject(?value).
  .plan 1:(2,1,3), 2:(3,2,1)
 
-// 下面两条处理 instance load 和 store 的后半部分（真正的pts传递）
-#if defined(CORRELATION) && defined(COLLECTION)
+#if defined(CUTSHORTCUT) && defined(CONTAINER)
 HostOfVar(?to, ?kind, ?host):-
   LoadHeapInstanceField(_, ?to, ?sig, _, ?basevalue),
   HostOfInstanceField(?basevalue, ?sig, ?kind, ?host).
@@ -172,11 +171,11 @@ VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   LoadHeapInstanceField(?ctx, ?to, ?signature, ?basehctx, ?basevalue),
   InstanceFieldPointsTo(?hctx, ?value, ?signature, ?basehctx, ?basevalue).
 
-#if defined(CORRELATION) && defined(COLLECTION)
+#if defined(CUTSHORTCUT) && defined(CONTAINER)
 HostOfInstanceField(?basevalue, ?sig, ?kind, ?host):-
   StoreHeapInstanceField(?sig, _, ?basevalue, _, ?from),
   HostOfVar(?from, ?kind, ?host).
-#endif //CORRELATION && COLLECTION
+#endif //CUTSHORTCUT && CONTAINER
 InstanceFieldPointsTo(?hctx, ?value, ?signature, ?basehctx, ?basevalue) :-
   StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?ctx, ?from),
   VarPointsTo(?hctx, ?value, ?ctx, ?from),
@@ -253,12 +252,12 @@ InstanceFieldPointsTo(?hctx, ?value, ?signature, ?basehctx, ?basevalue) :-
  * Load static fields
  */
 
-#if defined(CORRELATION) && defined(COLLECTION)
+#if defined(CUTSHORTCUT) && defined(CONTAINER)
 HostOfVar(?to, ?kind, ?host):-
   LoadStaticField(?sig, ?to, ?method),
   HostOfStaticField(?sig, ?kind, ?host),
   Reachable(?method).
-#endif //CORRELATION && COLLECTION
+#endif //CUTSHORTCUT && CONTAINER
 VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   StaticFieldPointsTo(?hctx, ?value, ?sig),
   LoadStaticField(?sig, ?to, ?inmethod),
@@ -272,7 +271,7 @@ VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
  */
 #if !defined(FEATHERWEIGHT_ANALYSIS) && !defined(DISABLE_POINTS_TO)
 
-#if defined(CORRELATION) && defined(COLLECTION)
+#if defined(CUTSHORTCUT) && defined(CONTAINER)
 HostOfStaticField(?sig, ?kind, ?host):-
   ReachableStoreStaticFieldFrom(?from),
   StoreStaticField(?from, ?sig, _),
@@ -360,11 +359,11 @@ Temp2(?ctx, ?to, ?basehctx, ?basevalue) :-
   Temp1(?basevalue, ?to),
   LoadHeapArrayIndex(?ctx, ?to, ?basehctx, ?basevalue).
 
-#if defined(CORRELATION) && defined(COLLECTION)
+#if defined(CUTSHORTCUT) && defined(CONTAINER)
 HostOfVar(?to, ?kind, ?host):-
   Temp1(?basevalue, ?to),
   HostOfArrayIndex(?basevalue, ?kind, ?host).
-#endif //CORRELATION && COLLECTION
+#endif //CUTSHORTCUT && CONTAINER
 VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   Temp2(?ctx, ?to, ?basehctx, ?basevalue),
   ArrayIndexPointsTo(?hctx, ?value, ?basehctx, ?basevalue).
@@ -424,7 +423,7 @@ OptStoreIntoArray(?hctx, ?value, ?basehctx, ?basevalue) :-
 #endif // FEATHERWEIGHT_ANALYSIS, INFORMATION_FLOW
 
 
-#if defined(CORRELATION) && defined(COLLECTION)
+#if defined(CUTSHORTCUT) && defined(CONTAINER)
 .decl StoreHeapArrayIndexForCollectionTemp(?basevalue:Value,?from:Var)
 StoreHeapArrayIndexForCollectionTemp(?basevalue,?from) :-
   NotEmptyArrayValue(?basevalue),
@@ -432,7 +431,7 @@ StoreHeapArrayIndexForCollectionTemp(?basevalue,?from) :-
 HostOfArrayIndex(?basevalue, ?kind, ?host):-
   StoreHeapArrayIndexForCollectionTemp(?basevalue,?from),
   HostOfVar(?from, ?kind, ?host).
-#endif // CORRELATION && COLLECTION
+#endif // CUTSHORTCUT && CONTAINER
 ArrayIndexPointsTo(?hctx, ?value, ?basehctx, ?basevalue) :-
   OptStoreIntoArray(?hctx, ?value, ?basehctx, ?basevalue),
   NotSpecialObject(?value),
@@ -564,16 +563,16 @@ VarPointsTo(?hctx, ?value, ?callerCtx, ?local) :-
 #else
 
 
-#if defined(CORRELATION)
+#if defined(CUTSHORTCUT)
 OptReturnAssign(?callerCtx, ?local, ?calleeCtx, ?return) :-
   CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?method),
   AssignReturnValue(?invocation, ?local),
-#if defined(COLLECTION)
+#if defined(CONTAINER)
   !RelatedCollectionOutMethod(?method),
-#endif //COLLECTION
-#if defined(IDMETHOD)
+#endif //CONTAINER
+#if defined(LOCALFLOW)
   !SpecialHandledReturnVar(?return),
-#endif //IDMETHOD
+#endif //LOCALFLOW
 #if defined(LOADPART)
   !IgnoredReturnVarLoad(?return),
 #endif //LOADPART
@@ -583,15 +582,15 @@ OptReturnAssign(?callerCtx, ?local, ?calleeCtx, ?return) :-
   CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?method),
   AssignReturnValue(?invocation, ?local),
   ReturnVar(?return, ?method).
-#endif //CORRELATION
+#endif //CUTSHORTCUT
 
 //return vpt logic
-#if defined(CORRELATION) && defined(COLLECTION)
+#if defined(CUTSHORTCUT) && defined(CONTAINER)
 HostOfVar(?to, ?kind, ?host):-
   OptReturnAssign(_, ?to, _, ?from),
   HostOfVar(?from, ?kind, ?host),
   !NotPassingReturnAssignFrom(?from).
-#endif //CORRELATION && COLLECTION
+#endif //CUTSHORTCUT && CONTAINER
 
 VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
   OptRetVarPointsTo(?hctx, ?value, ?fromCtx, ?from),
@@ -636,11 +635,11 @@ VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
  **/
 
 //arg->formal logic
-#if defined(CORRELATION) && defined(COLLECTION)
+#if defined(CUTSHORTCUT) && defined(CONTAINER)
 HostOfVar(?to, ?kind, ?host):-
   OptArgAssign(_, ?to, _, ?from, _),
   HostOfVar(?from, ?kind, ?host).
-#endif //CORRELATION && COLLECTION
+#endif //CUTSHORTCUT && CONTAINER
 
 VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
   OptArgVarPointsTo(?hctx, ?value, ?fromCtx, ?from),

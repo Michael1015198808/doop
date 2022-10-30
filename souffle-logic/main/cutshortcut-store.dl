@@ -121,7 +121,7 @@ AbstractInstanceFieldPointsToTemp(?from, ?basehctx, ?basevalue, ?sig, ?fromAllow
 .decl HostOfInstanceFieldTemp(?from:Var, ?basevalue:Value, ?sig:Field)
 //.output HostOfInstanceFieldTemp(IO="file",filename="HostOfInstanceFieldTemp.csv",delimiter="\t")
 
-#ifdef COLLECTION
+#ifdef CONTAINER
 HostOfInstanceField(?basevalue, ?sig, ?kind, ?host):-
     HostOfInstanceFieldTemp(?from, ?basevalue, ?sig),
     HostOfVar(?from, ?kind, ?host).

@@ -7,7 +7,7 @@ ALLAPP = ['luindex', 'lusearch', 'fop', 'antlr', 'pmd', 'chart', 'bloat', 'xalan
 DACAPOAPP = ['luindex', 'lusearch', 'fop', 'antlr', 'pmd', 'chart', 'bloat', 'xalan', 'hsqldb', 'eclipse', 'jython']
 EXPAPP = ['bloat', 'xalan', 'hsqldb', 'eclipse', 'findbugs', 'soot', 'gruntspud', 'columba', 'jedit', 'freecol', 'jython', 'briss']
 TMPAPP = ['jython', 'briss', 'jedit', 'freecol']
-ANALYSIS = ['context-insensitive', '2-object-sensitive+heap', '2-type-sensitive+heap', 'zipper-e', 'correlation', 'collection-3obj']
+ANALYSIS = ['context-insensitive', '2-object-sensitive+heap', '2-type-sensitive+heap', 'zipper-e', 'cut-shortcut', 'collection-3obj']
 
 APPINPUT = {
     'findbugs' : 'benchmarks/findbugs/3.0/lib/findbugs.jar benchmarks/findbugs/3.0/plugin/coreplugin.jar',

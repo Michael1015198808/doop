@@ -292,7 +292,7 @@ VarPointsTo(?hctx, ?value, ?ctx, ?return) :-
   isImmutableHContext(?hctx),
   AssignReturnValue(?invocation, ?return).
 
-#ifdef CORRELATION
+#ifdef CUTSHORTCUT
 .decl Tamiflex_Invoke_Simple(?invocation:MethodInvocation, ?method:Method)
 Tamiflex_Invoke_Simple(?invocation, ?method) :-
   ?sig = "<java.lang.reflect.Method: java.lang.Object invoke(java.lang.Object,java.lang.Object[])>",
@@ -300,4 +300,4 @@ Tamiflex_Invoke_Simple(?invocation, ?method) :-
   VirtualMethodInvocation(?invocation, ?sig, _),
   Tamiflex_ReflectionMap(?method, ?invocation),
   isMethod(?method).
-#endif //CORRELATION
+#endif //CUTSHORTCUT

@@ -265,9 +265,9 @@ class DoopAnalysisFamily implements AnalysisFamily {
 					forPreprocessor: true
 			),
 			new BooleanAnalysisOption(
-					id: "CORRELATION",
-					name : "correlation",
-					description: "enable correaltion based pointer analysis.",
+					id: "CUTSHORTCUT",
+					name : "cut-shortcut",
+					description: "enable cut-shortcut approach based pointer analysis.",
 					forPreprocessor: true
 			),
 			new BooleanAnalysisOption(

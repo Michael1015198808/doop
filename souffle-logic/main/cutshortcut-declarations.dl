@@ -2,25 +2,25 @@
 
 #define STOREPART 1
 //#define LOADPART 1
-#define COLLECTION 1
-#define IDMETHOD 1
+#define CONTAINER 1
+#define LOCALFLOW 1
 
-#if defined(COLLECTION)
-#include "correlation-class-type-classifier.dl"
-#include "correlation-assigned-correlation.dl"
-#include "correlation-collection.dl"
+#if defined(CONTAINER)
+#include "cutshortcut-class-type-classifier.dl"
+#include "cutshortcut-container-config.dl"
+#include "cutshortcut-container.dl"
 #endif
 
-#if defined(IDMETHOD)
-#include "correlation-IDmethod.dl"
+#if defined(LOCALFLOW)
+#include "cutshortcut-localflow.dl"
 #endif
 
 #if defined(STOREPART)
-#include "correlation-store.dl"
+#include "cutshortcut-store.dl"
 #endif
 
 #if defined(LOADPART)
-#include "correlation-load.dl"
+#include "cutshortcut-load.dl"
 #endif
 
 .decl LocalThisVar(?inmethod:Method, ?base:Var)
@@ -145,11 +145,11 @@ VirtualArgsAssign(?arrayIndex, ?var):-
     VirtualArgsForReflectionCall(?var, ?argsParam),
     VarPointsTo(_,?arrayIndex,_,?argsParam).
 
-#ifdef COLLECTION
+#ifdef CONTAINER
 HostOfVar(?virtualArgs, ?kind, ?host):-
     VirtualArgsAssign(?arrayIndex, ?virtualArgs),
     HostOfArrayIndex(?arrayIndex, ?kind, ?host).
-#endif //COLLECTION
+#endif //CONTAINER
 VarPointsTo("<<immutable-hcontext>>", ?value, "<<immutable-context>>", ?virtualArgs):-
     VirtualArgsAssign(?arrayIndex, ?virtualArgs),
     ArrayIndexPointsTo(_, ?value, _, ?arrayIndex).
