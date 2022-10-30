@@ -16,3 +16,12 @@ last-analysis
 #swp files
 *.swp
 
+#souffle profiler html output dir
+profiler_html
+
+#netbeans files
+.nb-gradle
+
+#intellij idea files
+.idea
+doop-nexgen.iml
