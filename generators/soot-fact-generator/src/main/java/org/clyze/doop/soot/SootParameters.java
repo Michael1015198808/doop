@@ -17,6 +17,7 @@ public class SootParameters extends Parameters {
     boolean _ignoreWrongStaticness = false;
     String _missingClassesOut = null;
     String _androidJars = null;
+    String _refLog = null;
     private boolean _toStdout = false;
     public boolean _lowMem = false;
     private final Collection<String> extraClassesToResolve = new ArrayList<>();
@@ -70,6 +71,10 @@ public class SootParameters extends Parameters {
         case "--lowMem":
             _lowMem = true;
             break;
+	case "--ref-log":
+    	    i = shift(args, i);
+    	    this._refLog = args[i];
+    	    break;
         case "-h":
         case "--help":
         case "-help":

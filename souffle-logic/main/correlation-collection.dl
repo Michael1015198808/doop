@@ -1,0 +1,644 @@
+//pointer's host
+.decl HostOfVar(?var:Var, ?containerKind:symbol, ?host:Value)
+//.output HostOfVar(IO="file",filename="HostOfVar.csv",delimiter="\t")
+.decl HostOfInstanceField(?basevalue:Value, ?sig:Field, ?containerKind:symbol, ?host:Value)
+//.output HostOfInstanceField(IO="file",filename="HostOfInstanceField.csv",delimiter="\t")
+.decl HostOfStaticField(?sig:Field, ?containerKind:symbol, ?host:Value)
+//.output HostOfStaticField(IO="file",filename="HostOfStaticField.csv",delimiter="\t")
+.decl HostOfArrayIndex(?baseValue:Value, ?containerKind:symbol, ?host:Value)
+//.output HostOfArrayIndex(IO="file",filename="HostOfArrayIndex.csv",delimiter="\t")
+
+//for main pta anslysis
+//deal with VarpointsTo:- CollectionCorrelationAssign [type check need here]
+.decl CollectionCorrelationAssign(?arg:Var, ?result:Var)
+//.output CollectionCorrelationAssign(IO="file",filename="CollectionCorrelationAssign.csv",delimiter="\t")
+//isRelatedCollectionOutInvoke method call
+.decl RelatedCollectionOutMethod(?method:Method)
+//.output RelatedCollectionOutMethod(IO="file",filename="RelatedCollectionOutMethod.csv",delimiter="\t")
+//return assign not passing host&kind
+.decl NotPassingReturnAssignFrom(?resutn:Var)
+//.output NotPassingReturnAssignFrom(IO="file",filename="NotPassingReturnAssignFrom.csv",delimiter="\t")
+
+//[core rule]
+//addOutResultToHost method call
+.decl OutResultToHost(?result:Var, ?host:Value, ?category:symbol)
+//.output OutResultToHost(IO="file",filename="OutResultToHost.csv",delimiter="\t")
+//executeInArgumentToHost method call
+.decl executeInArgumentToHost(?arg:Var, ?host:Value, ?category:symbol)
+//.output executeInArgumentToHost(IO="file",filename="executeInArgumentToHost.csv",delimiter="\t")
+//inArgumentToHost method call
+.decl InArgumentToHost(?arg:Var, ?callee:Method, ?index:number, ?host:Value)
+//.output InArgumentToHost(IO="file",filename="InArgumentToHost.csv",delimiter="\t")
+
+
+//correlation extenders logic
+//processCorrelationExtender method call
+.decl CorrelationExtenderNeedProcessing(?invocation:MethodInvocation, ?callee:Method)
+//.output CorrelationExtenderNeedProcessing(IO="file",filename="CorrelationExtenderNeedProcessing.csv",delimiter="\t")
+//correlaiton extender relation of vars
+.decl ExtendCorrelation(?larger:Var, ?smaller:Var)
+//.output ExtendCorrelation(IO="file",filename="ExtendCorrelation.csv",delimiter="\t")
+
+//for entrySet
+.decl EntrySetArgVar(?entrySetClass:Type, ?argVar:Var)
+//.output EntrySetArgVar(IO="file",filename="EntrySetArgVar.csv",delimiter="\t")
+
+//for arrayInitializer
+.decl ArrayInitializerNeedProcessing(?invocation:MethodInvocation, ?constructor:Method, ?index0:number, ?index1:number)
+//.output ArrayInitializerNeedProcessing(IO="file",filename="ArrayInitializerNeedProcessing.csv",delimiter="\t")
+.decl VirtualArrayOfArray(?vitrualArray:Var, ?array:Var)
+//.output VirtualArrayOfArray(IO="file",filename="VirtualArrayOfArray.csv",delimiter="\t")
+.decl VirtualArrayOfCollectionVar(?virtualArray:Var, ?collectionVar:Var)
+//.output VirtualArrayOfCollectionVar(IO="file",filename="VirtualArrayOfCollectionVar.csv",delimiter="\t")
+.decl VirtualArrayAssign(?arrayIndex:Value, ?virtualArray:Var)
+//.output VirtualArrayAssign(IO="file",filename="VirtualArrayAssign.csv",delimiter="\t")
+
+//for ThisPropagater
+.decl CollectionThisPropagate(?base:Var, ?this:Var)
+//.output CollectionThisPropagate(IO="file",filename="CollectionThisPropagate.csv",delimiter="\t")
+.decl SetKindInMap(?kind:symbol)
+
+//original host generate
+HostOfVar(?var, "MAP_0", ?obj):-
+    VarPointsTo(_, ?obj, _, ?var),
+    Value_Type(?obj, ?objType),
+    isHostClass(?objType),
+    ContainerType(?objType, ?containerType),
+    ?containerType = "MAP".
+
+HostOfVar(?var, "COL_0", ?obj):-
+    VarPointsTo(_, ?obj, _, ?var),
+    Value_Type(?obj, ?objType),
+    isHostClass(?objType),
+    ContainerType(?objType, ?containerType),
+    ?containerType = "COLLECTION".
+
+
+//special handle for ProviderList$3
+executeInArgumentToHost(?arg, ?obj, "Col-Value"):-
+    ?method = "<sun.security.jca.ProviderList$3: java.lang.Object get(int)>",
+    isMethod(?method),
+    VarPointsTo(_, ?obj, _, _),
+    Value_Type(?obj, ?objType),
+    isHostClass(?objType),
+    ?objType = "sun.security.jca.ProviderList$3",
+    ReturnVar(?arg, ?method).
+
+//propagateHostAndKind method in tai-e
+//host passer
+HostOfVar(?result, ?generatedKind, ?host):-
+    HostOfVar(?var, ?containerKind, ?host),
+    InvocationActualParamAndBase(-1, ?invocation, ?var),
+    AssignReturnValue(?invocation, ?result),
+    HostPassers(?containerKind, ?subString, ?generatedKind),
+    MethodInvocation_Method(?invocation, ?methodSignature),
+    contains(?subString,?methodSignature).
+
+OutResultToHost(?result, ?host, ?category):-
+    HostOfVar(?var, ?containerKind, ?host),
+    InvocationActualParamAndBase(-1, ?invocation, ?var),
+    AssignReturnValue(?invocation, ?result),
+    OutMethodsB(?containerKind, ?subString, ?category),
+    MethodInvocation_Method(?invocation, ?methodSignature),
+    contains(?subString,?methodSignature).
+
+HostOfVar(?result, ?generatedKind, ?host):-
+    HostOfVar(?var, ?containerKind, ?host),
+    ?containerKind = "COL_0",
+    InvocationActualParamAndBase(-1, ?invocation, ?var),
+    AssignReturnValue(?invocation, ?result),
+    Var_Type(?var, ?baseType),
+    isVectorClass(?baseType),
+    MethodInvocation_Method(?invocation, ?methodSignature),
+    contains("elements(",?methodSignature),
+    ?generatedKind = "COL_ITR".
+
+HostOfVar(?result, ?generatedKind, ?host):-
+    HostOfVar(?var, ?containerKind, ?host),
+    ?containerKind = "MAP_0",
+    InvocationActualParamAndBase(-1, ?invocation, ?var),
+    AssignReturnValue(?invocation, ?result),
+    Var_Type(?var, ?baseType),
+    isHashtableClass(?baseType),
+    MethodInvocation_Method(?invocation, ?methodSignature),
+    contains("elements(",?methodSignature),
+    ?generatedKind = "MAP_VALUE_ITR".
+
+
+//plugin.OnNewCallEdge method
+CorrelationExtenderNeedProcessing(?invocation, ?callee):-
+    CallGraphEdge(_, ?invocation, _, ?callee),
+    CorrelationExtender(?callee, _, _).
+ArrayInitializerNeedProcessing(?invocation, ?methodSignature, ?index0, ?index1):-
+    MethodInvocation_Method(?invocation, ?methodSignature),
+    ArrayInitializer(?methodSignature, ?index0, ?index1).
+
+//this var
+SetKindInMap("MAP_KEY_SET").
+SetKindInMap("MAP_VALUES").
+SetKindInMap("MAP_ENTRY_SET").
+// SetKindInMap("MAP_ENTRY_ITR").
+
+
+HostOfVar(?this, ?kind, ?host):-
+    CollectionThisPropagate(?base, ?this),
+    HostOfVar(?base, ?kind, ?host),
+    SetKindInMap(?kind).
+
+CollectionThisPropagate(?base, ?this):-
+    CallGraphEdge(_, ?invocation, _, ?callee),
+    ThisVar(?callee, ?this),
+    InvocationActualParamAndBase(-1, ?invocation, ?base).
+
+HostOfVar(?this, "MAP_ENTRY", ?host):-
+    CallGraphEdge(_, ?invocation, _, ?callee),
+    InvocationActualParamAndBase(-1, ?invocation, ?base),
+    ThisVar(?callee, ?this),
+    Method_DeclaringType(?callee, ?class),
+    HostOfVar(?base, ?kind, ?host),
+    (?class = "java.util.Hashtable$Entry";
+    ?class = "java.util.TreeMap$Entry"),
+    ?kind = "MAP_ENTRY".
+
+HostOfVar(?this, ?kind, ?host):-
+    CallGraphEdge(_, ?invocation, _, ?callee),
+    InvocationActualParamAndBase(-1, ?invocation, ?base),
+    ThisVar(?callee, ?this),
+    Method_DeclaringType(?callee, ?class),
+    HostOfVar(?base, ?kind, ?host),
+    ?class = "java.util.Hashtable$Enumerator".
+
+//processArrayInitializer
+VirtualArrayOfCollectionVar(?var, ?collectionVar),
+VirtualArrayOfArray(?var, ?arrayVar),
+isVirtualVar(?var),
+PlusVar(?var, ?caller, ?elementType):-
+    ArrayInitializerNeedProcessing(?invocation, ?constructor, ?index0, ?index1),
+    InvocationActualParamAndBase(?index0, ?invocation, ?arrayVar),
+    InvocationActualParamAndBase(?index1, ?invocation, ?collectionVar),
+    Var_Type(?arrayVar, ?arrayVarType),
+    isArrayType(?arrayVarType),
+    ComponentType(?arrayVarType, ?elementType),
+    ?var = cat(cat(cat(?invocation, "->"), ?constructor), "/virtualArray"),
+    Instruction_Method(?invocation, ?caller).
+
+executeInArgumentToHost(?var, ?host, "Col-Value"):-
+    VirtualArrayOfCollectionVar(?var, ?collectionVar),
+    HostOfVar(?collectionVar, "COL_0", ?host).
+
+VirtualArrayAssign(?arrayIndex, ?var):-
+    VirtualArrayOfArray(?var, ?arrayVar),
+    VarPointsTo(_,?arrayIndex,_,?arrayVar).
+
+HostOfVar(?virtualArray, ?kind, ?host):-
+    VirtualArrayAssign(?arrayIndex, ?virtualArray),
+    HostOfArrayIndex(?arrayIndex, ?kind, ?host).
+VarPointsTo("<<immutable-hcontext>>", ?value, "<<immutable-context>>", ?virtualArray):-
+    VirtualArrayAssign(?arrayIndex, ?virtualArray),
+    ArrayIndexPointsTo(_, ?value, _, ?arrayIndex).
+
+//entrySet
+VarPointsTo("<<immutable-hcontext>>", ?heapValue, "<<immutable-context>>", ?arg):-
+    (AssignContextInsensitiveHeapAllocation(?heapValue, _, ?inmethod);
+    AssignNormalHeapAllocation(?heapValue, _, ?inmethod)),
+    Value_Type(?heapValue, ?type),
+    isMapEntryClass(?type),
+    Method_DeclaringType(?inmethod, ?classType),
+    EntrySetClass(?entrySetClass, ?classType),
+    EntrySetArgVar(?entrySetClass, ?arg).
+
+EntrySetArgVar(?entrySetClass, ?var),
+isVirtualVar(?var),
+PlusVar(?var, "null", "java.lang.Object"):-
+    EntrySetClass(?entrySetClass, _),
+    ?var = cat(?entrySetClass, "/arg").
+
+executeInArgumentToHost(?arg, ?obj, "Col-Value"):-
+    VarPointsTo(_, ?obj, _, _),
+    Value_Type(?obj, ?objType),
+    isHostClass(?objType),
+    EntrySetArgVar(?objType, ?arg).
+
+//processCorrelationExtender method in tai-e
+ExtendCorrelation(?arg1, ?arg2):-
+    CorrelationExtenderNeedProcessing(?invocation, ?callee),
+    CorrelationExtender(?callee, ?index0, ?index1),
+    InvocationActualParamAndBase(-1, ?invocation, ?base),
+    Instruction_Method(?invocation, ?caller),
+    !MethodFormalParamAndThisIncludingLocal(-1, ?caller, ?base),
+    InvocationActualParamAndBase(?index0, ?invocation, ?arg1),
+    InvocationActualParamAndBase(?index1, ?invocation, ?arg2).
+
+// executeInArgumentToHost(?arg, ?largerhost, ?category):-
+//     ExtendCorrelation(?larger, ?smaller),
+//     HostOfVar(?larger, _, ?largerhost),
+//     HostOfVar( ?smaller, _, ?smallerhost),
+//     executeInArgumentToHost(?arg, ?smallerhost, ?category).
+
+executeInArgumentToHost(?arg, ?largerhost, "Col-Value"):-
+    ExtendCorrelation(?larger, ?smaller),
+    HostOfVar(?larger, "COL_0", ?largerhost),
+    HostOfVar(?smaller, "MAP_KEY_SET", ?smallerhost),
+    executeInArgumentToHost(?arg, ?smallerhost, "Map-Key").
+
+executeInArgumentToHost(?arg, ?largerhost, "Col-Value"):-
+    ExtendCorrelation(?larger, ?smaller),
+    HostOfVar(?larger, "COL_0", ?largerhost),
+    HostOfVar(?smaller, "MAP_VALUES", ?smallerhost),
+    executeInArgumentToHost(?arg, ?smallerhost, "Map-Value").
+
+executeInArgumentToHost(?arg, ?largerhost, "Col-Value"):-
+    ExtendCorrelation(?larger, ?smaller),
+    HostOfVar(?larger, "COL_0", ?largerhost),
+    HostOfVar(?smaller, "COL_0", ?smallerhost),
+    executeInArgumentToHost(?arg, ?smallerhost, "Col-Value").
+
+executeInArgumentToHost(?arg, ?largerhost, "Map-Key"):-
+    ExtendCorrelation(?larger, ?smaller),
+    HostOfVar(?larger, "MAP_0", ?largerhost),
+    HostOfVar(?smaller, "MAP_0", ?smallerhost),
+    executeInArgumentToHost(?arg, ?smallerhost, "Map-Key").
+
+executeInArgumentToHost(?arg, ?largerhost, "Map-Value"):-
+    ExtendCorrelation(?larger, ?smaller),
+    HostOfVar(?larger, "MAP_0", ?largerhost),
+    HostOfVar(?smaller, "MAP_0", ?smallerhost),
+    executeInArgumentToHost(?arg, ?smallerhost, "Map-Value").
+
+
+.decl InArgumentToHostTemp(?actual:Var, ?callee:Method, ?index:number, ?base:Var)
+//.output InArgumentToHostTemp(IO="file",filename="InArgumentToHostTemp.csv",delimiter="\t")
+InArgumentToHostTemp(?actual, ?callee, ?index, ?base):-
+    CallGraphEdge(_, ?invocation, _, ?callee),
+    ActualParam(?index, ?invocation, ?actual),
+    InvocationActualParamAndBase(-1, ?invocation, ?base),
+    !UnrelatedInvokes(?invocation).
+
+InArgumentToHost(?actual, ?callee, ?index, ?host):-
+    InArgumentToHostTemp(?actual, ?callee, ?index, ?base),
+    HostOfVar(?base, _, ?host).
+
+//inArgumentToHost method in tai-e
+executeInArgumentToHost(?arg, ?host, ?category) :-
+    InArgumentToHost(?arg, ?callee, ?index, ?host),
+    MethodParameterConstraint(?callee, ?index, ?cons, ?category),
+    basic.SubtypeOf(?hostType, ?cons),
+    Value_Type(?host, ?hostType).
+
+//represent addSuperHost method
+CollectionCorrelationAssign(?arg, ?result) :-
+    executeInArgumentToHost(?arg, ?host, ?category),
+    OutResultToHost(?result, ?host, ?category).
+
+//processCollectionOutInvoke(callsite, callee) <=> callGraphEdge(_, ?invo, _, ?callee) 
+.decl OutResultToHostTemp(?result:Var, ?base:Var, ?category:symbol)//optimize
+//.output OutResultToHostTemp(IO="file",filename="OutResultToHostTemp.csv",delimiter="\t")
+
+.decl HostOfBaseTypeCheck(?host:Value, ?base:Var)
+//.output HostOfBaseTypeCheck(IO="file",filename="HostOfBaseTypeCheck.csv",delimiter="\t")
+
+OutResultToHost(?result, ?host, ?category) :-  
+    OutResultToHostTemp(?result, ?base, ?category),
+    HostOfBaseTypeCheck(?host, ?base).
+
+OutResultToHostTemp(?result, ?base, ?category):-
+    CallGraphEdge(_, ?invocation, _, ?callee),
+    AssignReturnValue(?invocation, ?result),
+    OutMethodsA(?callee, ?category),
+    InvocationActualParamAndBase(-1, ?invocation, ?base).
+
+HostOfBaseTypeCheck(?host, ?base):-
+    HostOfVar(?base, _, ?host),
+    Var_Type(?base, ?baseType),
+    Value_Type(?host, ?hostType),
+    basic.SubtypeOf(?hostType, ?baseType).
+
+//optimize purpose
+.decl OutResultHostTempOpt1(?result:Var, ?base:Var)
+//.output OutResultHostTempOpt1(IO="file",filename="OutResultHostTempOpt1.csv",delimiter="\t")
+
+.decl OutResultHostTempOpt2(?result:Var, ?base:Var)
+//.output OutResultHostTempOpt2(IO="file",filename="OutResultHostTempOpt2.csv",delimiter="\t")
+
+.decl OutResultHostTempOpt3(?result:Var, ?base:Var)
+//.output OutResultHostTempOpt3(IO="file",filename="OutResultHostTempOpt3.csv",delimiter="\t")
+
+.decl OutResultHostTempOpt4(?result:Var, ?base:Var)
+//.output OutResultHostTempOpt4(IO="file",filename="OutResultHostTempOpt4.csv",delimiter="\t")
+
+.decl OutResultHostTempOpt5(?result:Var, ?base:Var)
+//.output OutResultHostTempOpt5(IO="file",filename="OutResultHostTempOpt5.csv",delimiter="\t")
+
+OutResultHostTempOpt1(?result, ?base) :-
+    CallGraphEdge(_, ?invocation, _, ?callee),
+    AssignReturnValue(?invocation, ?result),
+    InvocationActualParamAndBase(-1, ?invocation, ?base),
+    Method_DeclaringType(?callee, ?classType),
+    isMapEntryClass(?classType),
+    contains("getValue(",?callee).
+OutResultToHost(?result, ?host, "Map-Value"):-
+    OutResultHostTempOpt1(?result, ?base),
+    HostOfVar(?base, "MAP_ENTRY", ?host).
+
+OutResultHostTempOpt2(?result, ?base) :-
+    CallGraphEdge(_, ?invocation, _, ?callee),
+    AssignReturnValue(?invocation, ?result),
+    InvocationActualParamAndBase(-1, ?invocation, ?base),
+    Method_DeclaringType(?callee, ?classType),
+    isMapEntryClass(?classType),
+    contains("getKey(",?callee).
+OutResultToHost(?result, ?host, "Map-Key"):-
+    OutResultHostTempOpt2(?result, ?base),
+    HostOfVar(?base, "MAP_ENTRY", ?host).
+
+OutResultHostTempOpt3(?result, ?base) :-
+    CallGraphEdge(_, ?invocation, _, ?callee),
+    AssignReturnValue(?invocation, ?result),
+    InvocationActualParamAndBase(-1, ?invocation, ?base),
+    Method_DeclaringType(?callee, ?classType),
+    IteratorClass(?classType),
+    (contains("next()",?callee);
+    contains("previous()",?callee)).
+OutResultToHost(?result, ?host, "Map-Value"):-
+    OutResultHostTempOpt3(?result, ?base),
+    HostOfVar(?base, "MAP_VALUE_ITR", ?host).
+
+OutResultHostTempOpt4(?result, ?base) :-
+    CallGraphEdge(_, ?invocation, _, ?callee),
+    AssignReturnValue(?invocation, ?result),
+    InvocationActualParamAndBase(-1, ?invocation, ?base),
+    Method_DeclaringType(?callee, ?classType),
+    IteratorClass(?classType),
+    (contains("next()",?callee);
+    contains("previous()",?callee)).
+OutResultToHost(?result, ?host, "Map-Key"):-
+    OutResultHostTempOpt4(?result, ?base),
+    HostOfVar(?base, "MAP_KEY_ITR", ?host).
+OutResultToHost(?result, ?host, "Col-Value"):-
+    OutResultHostTempOpt4(?result, ?base),
+    HostOfVar(?base, "COL_ITR", ?host).
+
+OutResultHostTempOpt5(?result, ?base) :-
+    CallGraphEdge(_, ?invocation, _, ?callee),
+    AssignReturnValue(?invocation, ?result),
+    InvocationActualParamAndBase(-1, ?invocation, ?base),
+    Method_DeclaringType(?callee, ?classType),
+    isEnumerationClass(?classType),
+    contains("nextElement()",?callee).
+OutResultToHost(?result, ?host, "Map-Value"):-
+    OutResultHostTempOpt5(?result, ?base),
+    HostOfVar(?base, "MAP_VALUE_ITR", ?host).
+OutResultToHost(?result, ?host, "Map-Key"):-
+    OutResultHostTempOpt5(?result, ?base),
+    HostOfVar(?base, "MAP_KEY_ITR", ?host).
+OutResultToHost(?result, ?host, "Col-Value"):-
+    OutResultHostTempOpt5(?result, ?base),
+    HostOfVar(?base, "COL_ITR", ?host).
+
+//VPT & host & kind pass for collection-correlation assign
+HostOfVar(?result, ?kind, ?host):-
+    CollectionCorrelationAssign(?arg, ?result),
+    HostOfVar(?arg, ?kind, ?host).
+
+//optimize
+.decl CollectionVarPointsToTemp(?arg:Var, ?result:Var, ?allowedType:Type)
+VarPointsTo("<<immutable-hcontext>>", ?value, "<<immutable-context>>", ?result):-
+    CollectionVarPointsToTemp(?arg, ?result, ?allowedType),
+    VarPointsTo(_, ?value, _, ?arg),
+    Value_Type(?value, ?type),
+    basic.SubtypeOf(?type, ?allowedType).
+
+    
+CollectionVarPointsToTemp(?arg, ?result, ?allowedType):-    
+    CollectionCorrelationAssign(?arg, ?result),
+    Var_Type(?result, ?allowedType).
+
+
+//shouldStopEdge in tai-e
+NotPassingReturnAssignFrom(?return):-
+    ReturnVar(?return, ?method),
+    Method_DeclaringType(?method, ?classType),
+    isHostClass(?classType),
+    isHashtableClass(?classType),
+    (contains("elements()",?method);
+    contains("keys()", ?method)).
+
+NotPassingReturnAssignFrom(?return):-
+    ReturnVar(?return, ?method),
+    Method_DeclaringType(?method, ?classType),
+    isHostClass(?classType),
+    isVectorClass(?classType),
+    contains("elements()", ?method).
+    
+NotPassingReturnAssignFrom(?return):-
+    ReturnVar(?return, ?method),
+    Method_DeclaringType(?method, ?classType),
+    isHostClass(?classType),
+    (contains("iterator(",?method);
+    contains("entrySet()",?method);
+    contains("keySet()",?method);
+    contains("KeySet()",?method);
+    contains("values()",?method);
+    contains("Entry(",?method);
+    contains("Iterator(",?method)).
+
+// logic about collection in main pta analysis
+RelatedCollectionOutMethod(?method):-   
+    OutMethodsA(?method, _).
+RelatedCollectionOutMethod(?method):-
+    Method_DeclaringType(?method, ?classType),
+    isMapEntryClass(?classType),
+    (contains("getValue(", ?method);
+    contains("getKey(", ?method)).
+
+RelatedCollectionOutMethod(?method):-
+    Method_DeclaringType(?method, ?classType),
+    IteratorClass(?classType),
+    (contains("next()", ?method);
+    contains("previous()", ?method)),
+    HostClassInnerClass(?classType).
+
+RelatedCollectionOutMethod(?method):-
+    Method_DeclaringType(?method, ?classType),
+    isEnumerationClass(?classType),
+    contains("nextElement()", ?method),
+    HostClassInnerClass(?classType).
+
+#ifdef TAMIFLEX
+//tamiflex return var
+HostOfVar(?to, ?kind, ?host):-
+  OptInterproceduralAssign(_, ?to, _, ?from),
+  HostOfVar(?from, ?kind, ?host),
+  !NotPassingReturnAssignFrom(?from).
+
+//tamiflex param assign
+HostOfVar(?to, ?kind, ?host):-
+  TamiflexInvocationArgumentArrayValue(_, ?to, _, ?basevalue),
+  HostOfArrayIndex(?basevalue, ?kind, ?host).
+
+//tamiflex base->this host passing
+HostOfVar(?this, ?kind, ?host):-
+    Tamiflex_Invoke(_, ?invocation, ?callee),
+    ! Method_Modifier("static", ?callee),
+    ActualParam(0, ?invocation, ?base),
+    ThisVar(?callee, ?this),
+    HostOfVar(?base, ?kind, ?host),
+    SetKindInMap(?kind).
+
+HostOfVar(?this, ?kind, ?host):-
+    Tamiflex_Invoke(_, ?invocation, ?callee),
+    ! Method_Modifier("static", ?callee),
+    ActualParam(0, ?invocation, ?base),
+    ThisVar(?callee, ?this),
+    HostOfVar(?base, ?kind, ?host),
+    Method_DeclaringType(?callee, ?class),
+    ?class = "java.util.Hashtable$Enumerator".
+
+HostOfVar(?this, "MAP_ENTRY", ?host):-
+    Tamiflex_Invoke(_, ?invocation, ?callee),
+    ! Method_Modifier("static", ?callee),
+    ActualParam(0, ?invocation, ?base),
+    ThisVar(?callee, ?this),
+    Method_DeclaringType(?callee, ?class),
+    HostOfVar(?base, ?kind, ?host),
+    (?class = "java.util.Hashtable$Entry";
+    ?class = "java.util.TreeMap$Entry"),
+    ?kind = "MAP_ENTRY".
+
+//host passer
+HostOfVar(?result, ?generatedKind, ?host):-
+    HostOfVar(?var, ?containerKind, ?host),
+    TamiflexInvocationBase(?invocation, ?var),
+    AssignReturnValue(?invocation, ?result),
+    HostPassers(?containerKind, ?subString, ?generatedKind),
+    Tamiflex_Invoke(_, ?invocation, ?methodSignature),
+    contains(?subString,?methodSignature).
+
+HostOfVar(?result, ?generatedKind, ?host):-
+    HostOfVar(?var, ?containerKind, ?host),
+    ?containerKind = "COL_0",
+    TamiflexInvocationBase(?invocation, ?var),
+    AssignReturnValue(?invocation, ?result),
+    Var_Type(?var, ?baseType),
+    isVectorClass(?baseType),
+    Tamiflex_Invoke(_, ?invocation, ?methodSignature),
+    contains("elements(",?methodSignature),
+    ?generatedKind = "COL_ITR".
+
+HostOfVar(?result, ?generatedKind, ?host):-
+    HostOfVar(?var, ?containerKind, ?host),
+    ?containerKind = "MAP_0",
+    TamiflexInvocationBase(?invocation, ?var),
+    AssignReturnValue(?invocation, ?result),
+    Var_Type(?var, ?baseType),
+    isHashtableClass(?baseType),
+    Tamiflex_Invoke(_, ?invocation, ?methodSignature),
+    contains("elements(",?methodSignature),
+    ?generatedKind = "MAP_VALUE_ITR".
+
+
+//array initializer
+.decl ArrayInitializerNeedProcessingTamiflex(?invocation:MethodInvocation, ?constructor:Method, ?index0:number, ?index1:number)
+
+ArrayInitializerNeedProcessingTamiflex(?invocation, ?methodSignature, ?index0, ?index1):-
+    Tamiflex_Invoke_Simple(?invocation, ?methodSignature),
+    ArrayInitializer(?methodSignature, ?index0, ?index1).
+
+VirtualArrayOfCollectionVar(?var, ?collectionVar),
+VirtualArrayOfArray(?var, ?arrayVar),
+isVirtualVar(?var),
+PlusVar(?var, ?caller, ?elementType):-
+    ArrayInitializerNeedProcessingTamiflex(?invocation, ?constructor, -1, ?index1),
+    ?index1 != -1,
+    TamiflexInvocationBase(?invocation, ?arrayVar),
+    TamiflexInvocationActualParam(?invocation, ?collectionVar),
+    Var_Type(?arrayVar, ?arrayVarType),
+    isArrayType(?arrayVarType),
+    ComponentType(?arrayVarType, ?elementType),
+    ?var = cat(cat(cat(?invocation, "->"), ?constructor), "/virtualArray"),
+    Instruction_Method(?invocation, ?caller).
+
+VirtualArrayOfCollectionVar(?var, ?collectionVar),
+VirtualArrayOfArray(?var, ?arrayVar),
+isVirtualVar(?var),
+PlusVar(?var, ?caller, ?elementType):-
+    ArrayInitializerNeedProcessingTamiflex(?invocation, ?constructor, ?index0, -1),
+    ?index0 != -1,
+    TamiflexInvocationActualParam(?invocation, ?arrayVar),
+    TamiflexInvocationBase(?invocation, ?collectionVar),
+    Var_Type(?arrayVar, ?arrayVarType),
+    isArrayType(?arrayVarType),
+    ComponentType(?arrayVarType, ?elementType),
+    ?var = cat(cat(cat(?invocation, "->"), ?constructor), "/virtualArray"),
+    Instruction_Method(?invocation, ?caller).
+
+VirtualArrayOfCollectionVar(?var, ?collectionVar),
+VirtualArrayOfArray(?var, ?arrayVar),
+isVirtualVar(?var),
+PlusVar(?var, ?caller, ?elementType):-
+    ArrayInitializerNeedProcessingTamiflex(?invocation, ?constructor, ?index0, ?index1),
+    ?index0 != -1,
+    ?index1 != -1,
+    TamiflexInvocationActualParam(?invocation, ?arrayVar),
+    TamiflexInvocationActualParam(?invocation, ?collectionVar),
+    Var_Type(?arrayVar, ?arrayVarType),
+    isArrayType(?arrayVarType),
+    ComponentType(?arrayVarType, ?elementType),
+    ?var = cat(cat(cat(?invocation, "->"), ?constructor), "/virtualArray"),
+    Instruction_Method(?invocation, ?caller).
+
+
+//correlation extender
+.decl CorrelationExtenderNeedProcessingTamiflex(?invocation:MethodInvocation, ?callee:Method)
+CorrelationExtenderNeedProcessingTamiflex(?invocation, ?callee):-
+    TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
+    CorrelationExtender(?callee, _, _).
+    
+ExtendCorrelation(?base, ?arg2):-
+    CorrelationExtenderNeedProcessingTamiflex(?invocation, ?callee),
+    CorrelationExtender(?callee, -1, ?index1),
+    ?index1 != -1,
+    TamiflexInvocationBase(?invocation, ?base),
+    Instruction_Method(?invocation, ?caller),
+    !MethodFormalParamAndThisIncludingLocal(-1, ?caller, ?base),
+    TamiflexInvocationActualParam(?invocation, ?arg2).
+
+ExtendCorrelation(?arg1, ?base):-
+    CorrelationExtenderNeedProcessingTamiflex(?invocation, ?callee),
+    CorrelationExtender(?callee, ?index0, -1),
+    ?index0 != -1,
+    TamiflexInvocationBase(?invocation, ?base),
+    Instruction_Method(?invocation, ?caller),
+    !MethodFormalParamAndThisIncludingLocal(-1, ?caller, ?base),
+    TamiflexInvocationActualParam(?invocation, ?arg1).
+
+ExtendCorrelation(?arg1, ?arg1):-
+    CorrelationExtenderNeedProcessingTamiflex(?invocation, ?callee),
+    CorrelationExtender(?callee, ?index0, ?index1),
+    ?index0 != -1,
+    ?index1 != -1,
+    TamiflexInvocationBase(?invocation, ?base),
+    Instruction_Method(?invocation, ?caller),
+    !MethodFormalParamAndThisIncludingLocal(-1, ?caller, ?base),
+    TamiflexInvocationActualParam(?invocation, ?arg1).
+
+//in argument to host
+.decl InArgumentToHostTamiflexTemp(?actual:Var, ?callee:Method, ?base:Var)
+InArgumentToHostTamiflexTemp(?actual, ?callee, ?base):-
+    TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
+    TamiflexInvocationActualParam(?invocation, ?actual),
+    TamiflexInvocationBase(?invocation, ?base),
+    !UnrelatedInvokes(?invocation).
+
+.decl InArgumentToHostTamiflex(?actual:Var, ?callee:Method, ?host:Value)
+InArgumentToHostTamiflex(?actual, ?callee, ?host):-
+    InArgumentToHostTamiflexTemp(?actual, ?callee, ?base),
+    HostOfVar(?base, _, ?host).
+
+executeInArgumentToHost(?arg, ?host, ?category) :-
+    InArgumentToHostTamiflex(?arg, ?callee, ?host),
+    MethodParameterConstraint(?callee, _, ?cons, ?category),
+    basic.SubtypeOf(?hostType, ?cons),
+    Value_Type(?host, ?hostType).
+
+#endif //TAMIFLEX

@@ -1,0 +1,156 @@
+//input from soot generated facts
+
+#define STOREPART 1
+//#define LOADPART 1
+#define COLLECTION 1
+#define IDMETHOD 1
+
+#if defined(COLLECTION)
+#include "correlation-class-type-classifier.dl"
+#include "correlation-assigned-correlation.dl"
+#include "correlation-collection.dl"
+#endif
+
+#if defined(IDMETHOD)
+#include "correlation-IDmethod.dl"
+#endif
+
+#if defined(STOREPART)
+#include "correlation-store.dl"
+#endif
+
+#if defined(LOADPART)
+#include "correlation-load.dl"
+#endif
+
+.decl LocalThisVar(?inmethod:Method, ?base:Var)
+.input LocalThisVar(filename="ThisLocal.facts")
+// .output LocalThisVar(IO="file",filename="LocalThisVar.csv",delimiter="\t")
+
+.decl LocalParamAssign(?inmethod:Method, ?localpatam:Var, ?formalparam:Var)
+.input LocalParamAssign(filename = "ParamLocal.facts")
+// .output LocalParamAssign(IO="file",filename="LocalParamAssign.csv",delimiter="\t")
+
+//index = -1 -> base; otherwise, index is actual param index of the invocation
+.decl InvocationActualParamAndBase(?index:number, ?invocation:MethodInvocation, ?baseOrActualParam:Var)
+
+//index = -1 -> this; otherwise, index is actual param index of the invocation
+.decl MethodFormalParamAndThis(?index:number, ?inmethod:Method, ?thisOrFormalParam:Var)
+
+//index = -1 -> this; otherwise, index is actual param index of the invocation, including local arg and local this
+.decl MethodFormalParamAndThisIncludingLocal(?index:number, ?inmethod:Method, ?thisOrFormalParam:Var)
+
+.decl SpecialDefine(?from:Var, ?to:Var, ?inmethod:Method)
+// .output SpecialDefine(IO="file",filename="SpecialDefine.csv",delimiter="\t")
+
+.decl AssignLocalExcludeSpecialDefine(?from:Var, ?to:Var, ?inmethod:Method)
+// .output AssignLocalExcludeSpecialDefine(IO="file",filename="AssignLocalExcludeSpecialDefine.csv",delimiter="\t")
+
+.decl isVirtualVar(?var:Var)
+//.output isVirtualVar(IO="file",filename="isVirtualVar.csv",delimiter="\t")
+
+SpecialDefine(?from, ?to, ?inmethod):-
+    LocalParamAssign(?inmethod, ?to, ?from),
+    FormalParam(_, ?inmethod, ?from).
+SpecialDefine(?from, ?to, ?inmethod):-
+    LocalThisVar(?inmethod, ?to),
+    ThisVar(?inmethod, ?from).
+
+AssignLocalExcludeSpecialDefine(?from, ?to, ?inmethod):-
+    AssignLocal(?from, ?to, ?inmethod),
+    !SpecialDefine(?from, ?to, ?inmethod).
+
+// formal param and formal this
+MethodFormalParamAndThis(?index, ?inmethod, ?formal) :-
+    FormalParam(?index, ?inmethod, ?formal).
+MethodFormalParamAndThis(-1, ?inmethod, ?formal) :-
+    ThisVar(?inmethod, ?formal).
+
+//formal&local param and this
+MethodFormalParamAndThisIncludingLocal(?index, ?inmethod, ?local):-
+    MethodFormalParamAndThis(?index, ?inmethod, ?local).
+MethodFormalParamAndThisIncludingLocal(-1, ?inmethod, ?local):-
+    LocalThisVar(?inmethod, ?local).
+MethodFormalParamAndThisIncludingLocal(?index, ?inmethod, ?local):-
+    LocalParamAssign(?inmethod, ?local, ?formal),
+    FormalParam(?index, ?inmethod, ?formal).
+
+// actual param and base of invocation
+InvocationActualParamAndBase(?index, ?invocation, ?actual) :-
+    ActualParam(?index, ?invocation, ?actual).
+InvocationActualParamAndBase(-1, ?invocation, ?base) :-
+    VirtualMethodInvocation_Base(?invocation, ?base).
+InvocationActualParamAndBase(-1, ?invocation, ?base) :-
+    SpecialMethodInvocation_Base(?invocation, ?base).
+
+.decl FormalParamNotRedefinedExceptForSpecialDefine(?method:Method, ?var:Var, ?index:number)
+
+//for setget
+FormalParamNotRedefinedExceptForSpecialDefine(?inmethod, ?var, ?index):-
+    !LoadInstanceField(_, _, ?var, ?inmethod),
+    !LoadStaticField(_, ?var, ?inmethod),
+    !LoadArrayIndex(_, ?var, ?inmethod),
+    !AssignNull(?var, ?inmethod),
+    !AssignHeapAllocation(_, ?var, ?inmethod),
+    !AssignReturnValue(_, ?var),
+    !Throw(_, ?var),
+    !AssignCast(_, _, ?var, ?inmethod),
+    !AssignLocalExcludeSpecialDefine(_, ?var, ?inmethod),
+    MethodFormalParamAndThisIncludingLocal(?index, ?inmethod, ?var).
+
+#ifdef TAMIFLEX
+.decl TamiflexInvocationBase(?invocation:MethodInvocation, ?base:Var)
+.decl TamiflexInvocationActualParam(?invocation:MethodInvocation, ?arg:Var)
+
+.decl VirtualArgsForReflectionCall(?virtualArgs:Var, ?argsParam:Var)
+
+//constructor newInstance
+TamiflexInvocationBase(?invocation, ?return):-
+    Tamiflex_Constructor_NewInstance(?invocation, _, _),
+    AssignReturnValue(?invocation, ?return).
+
+isVirtualVar(?var),
+PlusVar(?var, ?caller, ?elementType),
+VirtualArgsForReflectionCall(?var, ?argsParam),
+TamiflexInvocationActualParam(?invocation,?var):-
+    Tamiflex_Constructor_NewInstance(?invocation, ?constructor, _),
+    ActualParam(0, ?invocation, ?argsParam),
+    Var_Type(?argsParam, ?arrayVarType),
+    isArrayType(?arrayVarType),
+    ComponentType(?arrayVarType, ?elementType),
+    ?var = cat(cat(cat(?invocation, "->"), ?constructor), "/virtualArgs"),
+    Instruction_Method(?invocation, ?caller).
+
+//invoke
+TamiflexInvocationBase(?invocation, ?base):-
+    Tamiflex_Invoke_Simple(?invocation, _),
+    ActualParam(0, ?invocation, ?base).
+
+isVirtualVar(?var),
+PlusVar(?var, ?caller, ?elementType),
+VirtualArgsForReflectionCall(?var, ?argsParam),
+TamiflexInvocationActualParam(?invocation, ?var):-
+    Tamiflex_Invoke_Simple(?invocation, ?callee),
+    ActualParam(1, ?invocation, ?argsParam),
+    Var_Type(?argsParam, ?arrayVarType),
+    isArrayType(?arrayVarType),
+    ComponentType(?arrayVarType, ?elementType),
+    ?var = cat(cat(cat(?invocation, "->"), ?callee), "/virtualArgs"),
+    Instruction_Method(?invocation, ?caller).
+
+//add objs into virtualArgs
+.decl VirtualArgsAssign(?arrayIndex:Value, ?virtualArgs:Var)
+
+VirtualArgsAssign(?arrayIndex, ?var):-
+    VirtualArgsForReflectionCall(?var, ?argsParam),
+    VarPointsTo(_,?arrayIndex,_,?argsParam).
+
+#ifdef COLLECTION
+HostOfVar(?virtualArgs, ?kind, ?host):-
+    VirtualArgsAssign(?arrayIndex, ?virtualArgs),
+    HostOfArrayIndex(?arrayIndex, ?kind, ?host).
+#endif //COLLECTION
+VarPointsTo("<<immutable-hcontext>>", ?value, "<<immutable-context>>", ?virtualArgs):-
+    VirtualArgsAssign(?arrayIndex, ?virtualArgs),
+    ArrayIndexPointsTo(_, ?value, _, ?arrayIndex).
+#endif //TAMIFLEX

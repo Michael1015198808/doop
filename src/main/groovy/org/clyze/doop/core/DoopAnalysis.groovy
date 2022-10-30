@@ -312,6 +312,16 @@ abstract class DoopAnalysis extends Analysis implements Runnable {
             Files.copy(origZipperFile.toPath(), destZipperFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
         }
 
+
+        if(options.CORRELATION.value){
+            File assignedCorrelationDir = new File("${Doop.doopHome}/assignedCorrelation")
+            File[] files = assignedCorrelationDir.listFiles()
+            for(File origAssignedCorrelation: files){
+                File destAssignedCorrelation = new File(factsDir,origAssignedCorrelation.getName())
+                Files.copy(origAssignedCorrelation.toPath(),destAssignedCorrelation.toPath(),StandardCopyOption.REPLACE_EXISTING)
+            }
+        }
+
         if (options.USER_DEFINED_PARTITIONS.value) {
             File origPartitionsFile = new File(options.USER_DEFINED_PARTITIONS.value.toString())
             File destPartitionsFile = new File(factsDir, "TypeToPartition.facts")
@@ -373,6 +383,10 @@ abstract class DoopAnalysis extends Analysis implements Runnable {
         if (options.DRY_RUN.value) {
             params += ["--no-facts"]
         }
+
+	if (options.TAMIFLEX.value) {
+    	    params += ["--ref-log", options.TAMIFLEX.value.toString()]
+	}
 
         if (options.X_R_OUT_DIR.value) {
             params += ["--R-out-dir", options.X_R_OUT_DIR.value.toString()]

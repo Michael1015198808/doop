@@ -1,5 +1,8 @@
 package org.clyze.doop.soot;
 
+import soot.PhaseOptions;
+import soot.options.CGOptions;
+import java.io.*;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -18,6 +21,7 @@ import org.clyze.doop.soot.android.AndroidSupport_Soot;
 import org.clyze.utils.ContainerUtils;
 import org.clyze.utils.JHelper;
 import soot.Scene;
+import soot.ModuleScene;
 import soot.SootClass;
 import soot.SootMethod;
 import soot.options.Options;
@@ -33,6 +37,18 @@ public class Main {
         if (args.length == 0) {
             SootParameters.showHelp();
             return;
+        }
+	for (String arg : args) {
+            System.out.println(arg);
+        }
+        BufferedReader bufferedReader = new BufferedReader(new FileReader(new File(args[1])));
+        List<String> params = new ArrayList<>();
+        String line = "";
+        while(null!=(line=bufferedReader.readLine())){
+            params.add(line);
+        }
+        for(String oneline: params){
+            System.out.println(oneline);
         }
 
         try {
@@ -78,6 +94,10 @@ public class Main {
             logWarn(logger, "WARNING: SSA not enabled, generating Jimple instead of Shimple");
             Options.v().set_output_format(Options.output_format_jimple);
         }
+
+        //if (sootParameters._tamiflexLog != null) {
+        //    Options.v().setPhaseOption("cg", "reflection-log:" + sootParameters._tamiflexLog);
+        //}
 
         //soot.options.Options.v().set_drop_bodies_after_load(true);
         Options.v().set_keep_line_number(true);
@@ -159,8 +179,8 @@ public class Main {
      * This is the part of Soot that can run in parallel with other
      * (pre)processing tasks.
      */
-    private static void invokeSoot(SootParameters sootParameters, Database db, Set<String> tmpDirs, SootData sootData, BasicJavaSupport_Soot java, AndroidSupport_Soot android, Scene scene, boolean writeFacts) throws DoopErrorCodeException, IOException {
-        if (debug != null)
+    private static void invokeSoot(SootParameters sootParameters, Database db, Set<String> tmpDirs, SootData sootData, BasicJavaSupport_Soot java, AndroidSupport_Soot android, Scene scene, boolean writeFacts) throws DoopErrorCodeException, IOException { 
+	if (debug != null)
             showPacks();
 
         DoopConventions.setSeparator();
@@ -216,7 +236,40 @@ public class Main {
             scene.addBasicClass(extraClass, SootClass.BODIES);
         }
 
+        Set<SootClass> xixixi3 = ConcurrentHashMap.<SootClass>newKeySet();
+        xixixi3.addAll(scene.getClasses());
+        System.out.println("Total classes in Scene: xixixi3 :" + xixixi3.size());
+
+
+        System.out.println("debugiing infooooooo basic class size1 "+scene.getBasicClasses().size());
+     
+        if (sootParameters._refLog != null) {
+            addReflectionClasses(scene, sootParameters._refLog);
+        }
+
         scene.loadNecessaryClasses();
+        CGOptions options = new CGOptions(PhaseOptions.v().getPhaseOptions("cg"));
+        String log = options.reflection_log();
+        System.out.println("debugiing infooooooo reflection_log "+ log);
+
+        System.out.println("debugiing infooooooo basic class size2 "+scene.getBasicClasses().size());
+
+        System.out.println("debugiing infoooooooo"+Options.v().oaat());
+        System.out.println("debugiing infoooooooo class"+Options.v().classes().size());
+        System.out.println("debugiing infoooooooo process_dir"+Options.v().process_dir().size());
+
+
+        System.out.println("debugiing infoooooooo dynamic"+Options.v().dynamic_class().size());
+        System.out.println("debugiing infoooooooo dynamic"+Options.v().dynamic_dir().size());
+        System.out.println("debugiing infoooooooo dynamic"+Options.v().dynamic_package().size());
+
+
+	System.out.println(scene instanceof ModuleScene);
+
+        Set<SootClass> xixixi4 = ConcurrentHashMap.<SootClass>newKeySet();
+        xixixi4.addAll(scene.getClasses());
+        System.out.println("Total classes in Scene: xixixi4 :" + xixixi4.size());
+
 
         /*
          * This part should definitely appear after the call to
@@ -231,6 +284,7 @@ public class Main {
         classes = ConcurrentHashMap.<SootClass>newKeySet();
         classes.addAll(scene.getClasses());
         System.out.println("Total classes in Scene: " + classes.size());
+
 
         if (mainClass != null && classes.stream().noneMatch((SootClass sc) -> sc.getName().equals(mainClass)))
             System.err.println("WARNING: main class does not exist: " + mainClass);
@@ -414,6 +468,70 @@ public class Main {
             DoopAddons.structureJimpleFiles(outDir);
         // Revert to standard output dir for the rest of the code.
         Options.v().set_output_dir(outDir);
+    }
+    private static void addReflectionClasses(Scene scene, String log){
+        Set<String> classes = new HashSet<String>();
+        if (log != null && log.length() > 0) {
+            BufferedReader reader = null;
+            String line = "";
+            try {
+                reader = new BufferedReader(new InputStreamReader(new FileInputStream(log)));
+                while (null != (line = reader.readLine())) {
+                    if (line.length() == 0) {
+                        continue;
+                    }
+                    String kind = line.split(";", -1)[0];
+                    String target = line.split(";", -1)[1];
+                    String source = line.split(";", -1)[2];
+                    String sourceClassName = source.substring(0, source.lastIndexOf("."));
+                    classes.add(sourceClassName);
+                    if (kind.equals("Class.forName")) {
+                        classes.add(target);
+                    } else if (kind.equals("Class.newInstance")) {
+                        classes.add(target);
+                    } else if (kind.equals("Method.invoke") || kind.equals("Constructor.newInstance")) {
+                        classes.add(scene.signatureToClass(target));
+                    } else if (kind.equals("Field.set*") || kind.equals("Field.get*")) {
+                        classes.add(scene.signatureToClass(target));
+                    } else if (kind.equals("Field.toString") || kind.equals("Method.toString")|| kind.equals("Constructor.toString")){
+                        classes.add(scene.signatureToClass(target));
+                    } else if (kind.equals("Field.getName") || kind.equals("Field.getDeclaringClass")){
+                        classes.add(scene.signatureToClass(target));
+                    } else if (kind.equals("Class.getDeclaredField") || kind.equals("Class.getDeclaredMethod")){
+                        classes.add(target);
+                    } else if (kind.equals("Class.getDeclaredFields") || kind.equals("Class.getDeclaredMethods")){
+                        if(!target.startsWith("[")){
+                            classes.add(target);
+                        }
+                    } else if (kind.equals("Class.getFields") || kind.equals("Class.getMethods")){
+                        classes.add(target);
+                    } else if (kind.equals("Class.getMethod") || kind.equals("Class.getField")){
+                        classes.add(scene.signatureToClass(target));
+                    } else if (kind.equals("Constructor.getModifiers") || kind.equals("Field.getModifiers")){
+                        classes.add(scene.signatureToClass(target));
+                    } else if (kind.equals("Method.getModifiers") || kind.equals("Method.getName")){
+                        classes.add(scene.signatureToClass(target));
+                    } else if (kind.equals("Method.getDeclaringClass")){
+                        classes.add(scene.signatureToClass(target));
+                    } else {
+                        ;
+                    }
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Error in" + line, e);
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
+        for (String c : classes) {
+            scene.addBasicClass(c, SootClass.BODIES);
+        }
     }
 }
 

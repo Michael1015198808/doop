@@ -111,7 +111,7 @@ class DoopAnalysisFamily implements AnalysisFamily {
 					optName: "t",
 					argName: "MINUTES",
 					description: "The analysis max allocated execution time. Measured in minutes.",
-					value: 90, // Minutes
+					value: 120, // Minutes
 					cli: false
 			),
 			new AnalysisOption<String>(
@@ -262,6 +262,18 @@ class DoopAnalysisFamily implements AnalysisFamily {
 					id: "SANITY",
 					name: "sanity",
 					description: "Load additional logic for sanity checks.",
+					forPreprocessor: true
+			),
+			new BooleanAnalysisOption(
+					id: "CORRELATION",
+					name : "correlation",
+					description: "enable correaltion based pointer analysis.",
+					forPreprocessor: true
+			),
+			new BooleanAnalysisOption(
+					id: "COLLECTION3OBJ",
+					name : "collection-3obj",
+					description: "enable collection-3obj pointer analysis.",
 					forPreprocessor: true
 			),
 			new BooleanAnalysisOption(

@@ -26,6 +26,11 @@ AllCallGraphEdge(?from, ?to) :- TamiflexCallGraphEdge(_, ?from, _, ?to).
 #endif // TAMIFLEX
 
 
+.decl AssignCompatible(?target:Type, ?source:Type)
+.output AssignCompatible(IO="file",filename="ASSIGN_COMPATIBLE.csv",delimiter="\t")
+
+AssignCompatible(?target, ?source) :- basic.SupertypeOf(?target, ?source).
+
 .decl CallReturnTo(?recv:Var, ?to:Var)
 .output CallReturnTo(IO="file",filename="CALL_RETURN_TO.csv",delimiter="\t")
 
@@ -35,7 +40,7 @@ CallReturnTo(?recv, ?to) :-
 
 
 .decl CallSiteIn(?invo:MethodInvocation, ?method:Method)
-.output CallSiteIn(IO="file",filename="CALLSITEIN.csv",delimiter="\t")
+.output CallSiteIn(IO="file",filename="CALLSITE_IN.csv",delimiter="\t")
 
 CallSiteIn(?invo, ?method) :-
     Reachable(?method),
@@ -99,7 +104,12 @@ LocalAssign(?to, ?from) :-
 LocalAssign(?to, ?from) :- OptAssignCast(_, ?to, ?from).
 
 
-.output Method_Modifier(IO="file",filename="METHOD_MODIFIER.csv",delimiter="\t")
+.decl outputMethodModifier(?mod:Modifier, ?method:Method)
+outputMethodModifier(?mod, ?method):-
+    Method_Modifier(?mod, ?method),
+    ?mod = "private".
+
+.output outputMethodModifier(IO="file",filename="METHOD_MODIFIER.csv",delimiter="\t")
 
 
 .decl ObjType(?obj:Value, ?type:Type)
@@ -109,6 +119,7 @@ ObjType(?obj, ?type) :-
     Value_Type(?obj, ?type),
     VarPointsTo(_, ?obj, _, _).
 
+ObjType("<<pystring-object>>", "org.python.core.PyString").
 
 .decl ObjectAssign(?obj:Value, ?var:Var)
 .output ObjectAssign(IO="file",filename="OBJECT_ASSIGN.csv",delimiter="\t")
@@ -144,6 +155,11 @@ RetVar(?method, ?ret) :-
 .decl VarIn(?var:Var, ?method:Method)
 .output VarIn(IO="file",filename="VAR_IN.csv",delimiter="\t")
 
+.decl VarType(?var:Var, ?type:Type)
+.output VarType(IO="file",filename="VAR_TYPE.csv",delimiter="\t")
+
+VarType(?var, ?type),
 VarIn(?var, ?method) :-
     Reachable(?method),
-    Var_DeclaringMethod(?var, ?method).
+    Var_DeclaringMethod(?var, ?method),
+    Var_Type(?var, ?type).

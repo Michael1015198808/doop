@@ -23,6 +23,8 @@ dependencies {
 
     // implementation "ca.mcgill.sable:soot:4.0.0"
     implementation "org.soot-oss:soot:4.2.1"
+    //implementation files("${rootDir}/libs/sootclasses-4.2.1-jar-with-dependencies.jar")
+ 
 
     testImplementation "org.codehaus.groovy:groovy-all:${groovyVersion}"  // Groovy
     testImplementation "org.spockframework:spock-core:${spockVersion}"

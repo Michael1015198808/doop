@@ -1,0 +1,158 @@
+//index = -1 -> this, others -> formal param
+.decl DirectlyReturnParams(?method:Method, ?index:number)
+// .output DirectlyReturnParams(IO="file",filename="DirectlyReturnParams.csv",delimiter="\t")
+
+//index = -1 -> this, others -> formal param
+// .decl VarAssignedFromFormalParam(?method:Method, ?var:Var, ?index:number)
+// .output VarAssignedFromFormalParam(IO="file",filename="VarAssignedFromFormalParam.csv",delimiter="\t")
+
+.decl SpecialHandledReturnVar(?var:Var)
+// .output SpecialHandledReturnVar(IO="file",filename="SpecialHandledReturnVar.csv",delimiter="\t")
+
+//type check here
+.decl IDCorrelationAssign(?from:Var, ?to:Var)
+// .output IDCorrelationAssign(IO="file",filename="IDCorrelationAssign.csv",delimiter="\t")
+
+.decl IdendityThisToBaseHostPassingTemp(?tomethod:Method, ?result:Var)
+//special handling with 'this' to improve some precision
+//virtual method invocation this 
+IdendityThisToBaseHostPassingTemp(?tomethod, ?result),
+VarPointsTo("<<immutable-hcontext>>", ?obj, "<<immutable-context>>", ?result):-
+    OptVirtualMethodInvocationBase(?invocation, ?base),
+    VarPointsTo(_, ?obj, _, ?base),
+    Value_Type(?obj, ?valuetype),
+    basic.ResolveInvocation(?valuetype, ?invocation, ?tomethod),
+    AssignReturnValue(?invocation,?result),
+    DirectlyReturnParams(?tomethod, -1).
+
+#ifdef COLLECTION 
+HostOfVar(?result, ?kind, ?host):-
+    IdendityThisToBaseHostPassingTemp(?method, ?result),
+    ReturnVar(?return, ?method),
+    HostOfVar(?return, ?kind, ?host).
+#endif
+
+//special method invocation this
+.decl SpecialMethodIdendityThisPassingTemp(?result:Var, ?base:Var)
+SpecialMethodIdendityThisPassingTemp(?result, ?base):-
+    AssignReturnValue(?invocation,?result),
+    OptSpecialMethodInvocationBase(?invocation, ?base),
+    MethodInvocation_Method(?invocation, ?tomethod),
+    DirectlyReturnParams(?tomethod, -1).
+
+VarPointsTo("<<immutable-hcontext>>", ?value, "<<immutable-context>>", ?result):-
+    SpecialMethodIdendityThisPassingTemp(?result, ?base),
+    VarPointsTo(_, ?value, _, ?base).
+
+SpecialHandledReturnVar(?return),
+DirectlyReturnParams(?method, ?index):-
+    ReturnVar(?return, ?method),
+#ifdef COLLECTION 
+    !RelatedCollectionOutMethod(?method),
+#endif
+    VarFromParamIndex(?method, ?return, ?index).
+
+IDCorrelationAssign(?arg, ?result):-
+    CallGraphEdge(_, ?invocation, _, ?callee),
+    AssignReturnValue(?invocation, ?result),
+    DirectlyReturnParams(?callee, ?index),
+    ?index != -1,
+    InvocationActualParamAndBase(?index, ?invocation, ?arg).
+
+//deal with IDCorrelationAssign
+#ifdef COLLECTION
+HostOfVar(?result, ?kind, ?host):-
+    IDCorrelationAssign(?arg, ?result),
+    HostOfVar(?arg, ?kind, ?host).
+#endif
+//may need optimize
+VarPointsTo("<<immutable-hcontext>>", ?value, "<<immutable-context>>", ?result):-
+    IDCorrelationAssign(?arg, ?result),
+    Var_Type(?result, ?allowedType),
+    VarPointsTo(_, ?value, _, ?arg),
+    Value_Type(?value, ?type),
+    basic.SubtypeOf(?type, ?allowedType).
+
+//getVariablesAssignedFromParameters
+//related define in taie is good[copy , cast], bad[invoke, new, LoadInstanceField, LoadStaticField, LoadArray, assignnull]
+
+
+.decl VarFromParam(?method:Method, ?var:Var)
+
+.decl VarNotFromParam(?method:Method, ?var:Var)
+
+.decl VarFromParamIndex(?method:Method, ?var:Var, ?index:number)
+
+VarFromParam(?method, ?var):-
+    MethodFormalParamAndThis(_, ?method, ?var).
+
+VarFromParamIndex(?method, ?var, ?index):-
+    MethodFormalParamAndThis(?index, ?method, ?var).
+
+VarNotFromParam(?inmethod, ?to):-
+    (LoadInstanceField(_, _, ?to, ?inmethod);
+    LoadStaticField(_, ?to, ?inmethod);
+    LoadArrayIndex(_, ?to, ?inmethod);
+    AssignNull(?to, ?inmethod);
+    AssignHeapAllocation(_, ?to, ?inmethod)).
+    
+VarNotFromParam(?inmethod, ?to):-
+    Instruction_Method(?invocation, ?inmethod),
+    AssignReturnValue(?invocation, ?to).
+
+VarNotFromParam(?inmethod, ?to):-
+    Instruction_Method(?instruction, ?inmethod),
+    Throw(?instruction, ?to).
+
+VarNotFromParam(?inmethod, ?to):-
+    AssignLocal(?from, ?to, ?inmethod),
+    VarNotFromParam(?inmethod, ?from).
+
+VarNotFromParam(?inmethod, ?to):-
+    AssignCast(_, ?from, ?to, ?inmethod),
+    VarNotFromParam(?inmethod, ?from).
+
+VarFromParam(?inmethod, ?var):-
+    !VarNotFromParam(_, ?var),
+    Var_DeclaringMethod(?var, ?inmethod).
+
+//[derived]
+VarFromParamIndex(?inmethod, ?to, ?index):-
+    VarFromParamIndex(?inmethod, ?from, ?index),
+    VarFromParam(?inmethod, ?to),
+    (AssignLocal(?from, ?to, ?inmethod);
+    AssignCast(_, ?from, ?to, ?inmethod)).
+
+
+//special deal with tamiflex call edge to improve some precision
+#ifdef TAMIFLEX
+//for index!=-1
+IDCorrelationAssign(?virtualArgs, ?result):-
+    TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
+    Tamiflex_Invoke_Simple(?invocation, _),
+    AssignReturnValue(?invocation, ?result),
+    DirectlyReturnParams(?callee, ?index),
+    ?index != -1,
+    TamiflexInvocationActualParam(?invocation, ?virtualArgs).
+
+//for this var
+.decl TamiflexIdendityThisPassingTemp(?base:Var, ?result:Var)
+TamiflexIdendityThisPassingTemp(?base, ?result):-
+    AssignReturnValue(?invocation,?result),
+    Tamiflex_Invoke(_, ?invocation, ?callee),
+    TamiflexInvocationBase(?invocation, ?base),
+    DirectlyReturnParams(?callee, -1).
+VarPointsTo("<<immutable-hcontext>>", ?value, "<<immutable-context>>", ?result):-
+    VarPointsTo(_, ?value, _, ?base),
+    TamiflexIdendityThisPassingTemp(?base, ?result).
+
+#ifdef COLLECTION 
+HostOfVar(?result, ?kind, ?host):-
+    AssignReturnValue(?invocation,?result),
+    Tamiflex_Invoke(_, ?invocation, ?callee),
+    TamiflexInvocationBase(?invocation, ?base),
+    DirectlyReturnParams(?callee, -1),
+    HostOfVar(?base, ?kind, ?host).
+#endif //COLLECTION
+
+#endif //TAMIFLEX

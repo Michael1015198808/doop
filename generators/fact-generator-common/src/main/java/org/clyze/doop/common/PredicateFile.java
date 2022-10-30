@@ -132,7 +132,9 @@ public enum PredicateFile
     VIRTUAL_METHOD_INV("VirtualMethodInvocation"),
     XMLNode("XMLNode"),
     XMLNodeAttribute("XMLNodeAttribute"),
-    XMLNodeData("XMLNodeData");
+    XMLNodeData("XMLNodeData"),
+    THISLOCAL("ThisLocal"),
+    PARAMLOCAL("ParamLocal");
 
 
     private final String name;

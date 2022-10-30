@@ -7,7 +7,7 @@ configuration.StaticContextRequest(?callerCtx, ?invocation) :-
 // The main analysis is merely looking up the previously created
 // context objects.
 
-#ifdef X_ZIPPER
+#if defined(X_ZIPPER)
 
 .decl ZipperPrecisionCriticalMethod(?method:Method)
 .input ZipperPrecisionCriticalMethod(IO="file",filename="ZipperPrecisionCriticalMethod.facts",delimiter="\t")
@@ -45,7 +45,37 @@ CallGraphEdge(?callerCtx, ?invocation, ?immCtx, ?tomethod) :-
   MethodInvocation_Method(?invocation, ?tomethod),
   !ZipperPrecisionCriticalMethod(?tomethod).
 
-#else // X_ZIPPER
+#elif defined(COLLECTION3OBJ)
+
+// virtual & special invocation
+isContext(?calleeCtx),
+CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?tomethod) :-
+  configuration.ContextRequest(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, 1),
+  configuration.ContextResponse(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, ?calleeCtx),
+  CollectionMethods(?tomethod).
+
+CallGraphEdge(?callerCtx, ?invocation, ?immCtx, ?tomethod) :-
+  configuration.ContextRequest(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, 1),
+  configuration.ContextResponse(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, ?calleeCtx),
+  isImmutableContext(?immCtx),
+  !CollectionMethods(?tomethod).
+
+// static invocation
+
+isContext(?calleeCtx),
+CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?tomethod) :-
+  configuration.StaticContextResponse(?callerCtx, ?invocation, ?calleeCtx),
+  MethodInvocation_Method(?invocation, ?tomethod),
+  CollectionMethods(?tomethod).
+
+CallGraphEdge(?callerCtx, ?invocation, ?immCtx, ?tomethod) :-
+  configuration.StaticContextResponse(?callerCtx, ?invocation, _),
+  isImmutableContext(?immCtx),
+  MethodInvocation_Method(?invocation, ?tomethod),
+  !CollectionMethods(?tomethod).
+
+#else 
+
 // Original rules
 
 isContext(?calleeCtx),
@@ -61,5 +91,6 @@ CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?tomethod) :-
   configuration.StaticContextResponse(?callerCtx, ?invocation, ?calleeCtx),
   MethodInvocation_Method(?invocation, ?tomethod).
 
-#endif // X_ZIPPER
+#endif // X_ZIPPER or COLLECTION3OBJ
 }
+

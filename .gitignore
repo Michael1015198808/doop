@@ -1,35 +1,9 @@
-.gradle
-.gradletasknamecache
-build
 cache
 logs
 out
+input
 results
 last-analysis
-checksums.properties
-doop.properties
-src/main/resources/git-hash.txt
-src/test/resources/AndroidCallbacks.txt
-src/test/resources/EasyTaintWrapperSource.txt
-src/test/resources/apktool-cli-2.4.2.jar
-src/test/resources/git-hash.txt
-src/test/resources/log4j.properties
-src/test/resources/timeout
-src/test/resources/*-fact-generator.jar
-
-# dynamically generated class
-tests/115-invokedynamic/InvokedynamicClass.class
-
-#intellij idea files
-.idea
-doop-nexgen.iml
-
-#eclipse files
-.classpath
-.project
-
-#netbeans files
-.nb-gradle
 
 #emacs files
 *~
@@ -39,5 +13,3 @@ doop-nexgen.iml
 #swp files
 *.swp
 
-#souffle profiler html output dir
-profiler_html

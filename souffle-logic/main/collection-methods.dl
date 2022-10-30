@@ -1,0 +1,41 @@
+.decl CollectionMethods(?method:Method)
+.output CollectionMethods(IO="file",filename="CollectionMethods.csv",delimiter="\t")
+
+.decl ExcludeClass(?class:Type)
+.output ExcludeClass(IO="file",filename="ExcludeClass.csv",delimiter="\t")
+
+.decl CollectionClasses(?class:Type)
+.output CollectionClasses(IO="file",filename="CollectionClasses.csv",delimiter="\t")
+
+.decl InnerClass(?inner:Type, ?outer:Type)
+.output InnerClass(IO="file",filename="InnerClass.csv",delimiter="\t")
+
+InnerClass(?inner, ?outer):-
+    isClassType(?inner),
+    isClassType(?outer),
+    ?innerClassPrefix = cat(?outer, "$"),
+    substr(?inner, 0, strlen(?innerClassPrefix)) = ?innerClassPrefix.
+
+ExcludeClass(?class):-
+    ApplicationClass(?class),
+    ?n = count : InnerClass(_, ?class),
+    ?n > 10.
+
+CollectionClasses(?class):-
+    basic.SubtypeOf(?class, ?superType),
+    (?superType = "java.util.Collection";
+    ?superType = "java.util.Dictionary";
+    ?superType = "java.util.Map"),
+    !ExcludeClass(?class).
+
+CollectionClasses("java.util.Arrays").
+CollectionClasses("java.util.Collections").
+
+
+CollectionClasses(?inner):-
+    InnerClass(?inner, ?outer),
+    CollectionClasses(?outer).
+
+CollectionMethods(?method):-
+    CollectionClasses(?class),
+    Method_DeclaringType(?method, ?class).

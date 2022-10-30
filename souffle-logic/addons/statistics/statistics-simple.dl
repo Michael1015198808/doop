@@ -37,6 +37,7 @@ Stats_Simple_ReachableVar(?ctx, ?var) :-
 Stats_Simple_InsensVarPointsTo(?value, ?var) :-
   DupCopies(?var, ?var2),
   mainAnalysis.VarPointsTo(_, ?value, _, ?var2).
+
 #endif // TRANSFORM_INPUT
 
 /***************************************************
@@ -388,11 +389,15 @@ NewMetricMacro("102.0", "2-object-sensitive methods", mainAnalysis.configuration
 #ifndef DISABLE_POINTS_TO
 
 Stats_Simple_TwoObjectMethodsVPT(?hctx, ?value, ?ctx, ?var) :-
-   mainAnalysis.VarPointsTo(?hctx, ?value, ?ctx, ?var), Var_DeclaringMethod(?var, ?method), mainAnalysis.configuration.TwoObjectMethod(?method).
+   mainAnalysis.VarPointsTo(?hctx, ?value, ?ctx, ?var), 
+   Var_DeclaringMethod(?var, ?method), 
+   mainAnalysis.configuration.TwoObjectMethod(?method).
 NewMetricMacro("103.0", "context-insensitive methods total VPT", Stats_Simple_ContextInsensitiveMethodsVPT(_, _, _, _)).
 
 Stats_Simple_ContextInsensitiveMethodsVPT(?hctx, ?value, ?ctx, ?var) :-
-   mainAnalysis.VarPointsTo(?hctx, ?value, ?ctx, ?var), Var_DeclaringMethod(?var, ?method), mainAnalysis.configuration.ContextInsensitiveMethod(?method).
+   mainAnalysis.VarPointsTo(?hctx, ?value, ?ctx, ?var), 
+   Var_DeclaringMethod(?var, ?method), 
+   mainAnalysis.configuration.ContextInsensitiveMethod(?method).
 NewMetricMacro("104.0", "2-object-sensitive methods total VPT", Stats_Simple_TwoObjectMethodsVPT(_, _, _, _)).
 
 #endif // DISABLE_POINTS_TO

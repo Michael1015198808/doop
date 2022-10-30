@@ -1,0 +1,34 @@
+// context-insensitive pointer analysis with correaltion edges added and redundant edges deleted in pfg.
+
+#include "../../main/single-phase-analysis.dl"
+#include "../../main/configuration.dl"
+
+// This analysis has no context for either method calls or heap objects.
+// This is emulated by creating a single Context object and a single HContext
+// object, which are used everywhere.(same as normal context-insensitive analysis in doop)
+
+.comp CorrelationConfiguration : AbstractConfiguration {
+    
+  .type Context = symbol
+  .type HContext = symbol
+
+  ContextResponse(?callerCtx, ?hctx, ?invo, ?value, ?tomethod, ?calleeCtx) :-
+    ContextRequest(?callerCtx, ?hctx, ?invo, ?value, ?tomethod, _),
+    ?calleeCtx = ?callerCtx.
+
+  StaticContextResponse(?callerCtx, ?invo, ?calleeCtx) :-
+    StaticContextRequest(?callerCtx, ?invo),
+    ?calleeCtx = ?callerCtx.
+
+  RecordContextResponse(?ctx, ?value, ?var, ?hctx) :-
+    RecordContextRequest(?ctx, ?value, ?var),
+    isImmutableHContext(?hctx).
+
+  InitContextResponse(?s, ?ctx) :-
+    ?ctx = "<<immutable-context>>",
+    InitContextRequest(?s).
+
+  InitHContextResponse(?s, ?hctx) :-
+    ?hctx = "<<immutable-hcontext>>",
+    InitHContextRequest(?s).
+}

@@ -2,7 +2,8 @@
  * Encodes a CHA callgraph, effectively
  */
 .decl ResolveInvocation(?type:Type, ?invocation:MethodInvocation, ?tomethod:Method)
-//.output ResolveInvocation
+//.output ResolveInvocation(IO="file",filename="ResolveInvocation.csv",delimiter="\t")
+
 
 // Auxiliary
 .decl VirtualMethodInvocation_BaseType(?invocation:MethodInvocation, ?type:Type)

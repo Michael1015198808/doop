@@ -1100,7 +1100,7 @@ ConcreteClass(?class) :-
   isClassType(?class),
   !ClassModifier("abstract", ?class).
 
-#if defined(JRE3) || defined (JRE4) || defined(JRE5) || defined(JRE6)
+#if defined(JRE13) || defined (JRE14) || defined(JRE15) || defined(JRE16)
 MockHeapConsMacro(?heap, ?type) :-
   ?heap = "java.io.FileSystem.getFileSystem/new java.io.UnixFileSystem",
   ?type = "java.io.UnixFileSystem".

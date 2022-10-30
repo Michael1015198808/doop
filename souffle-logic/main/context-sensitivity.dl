@@ -92,6 +92,12 @@ VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
 // No need to check if type compatible: check is done at original
 // inputs to VarPointsTo
 
+
+#if defined(CORRELATION) && defined(COLLECTION)
+HostOfVar(?to, ?kind, ?host):-
+  HostOfVar(?from, ?kind, ?host),
+  AssignLocal(?from, ?to, _).
+#endif
 VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   VarPointsTo(?hctx, ?value, ?ctx, ?from),
   AssignLocal(?from, ?to, _).
@@ -100,6 +106,12 @@ VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
  * Cast assignments
  */
 
+		
+#if defined(CORRELATION) && defined(COLLECTION)
+HostOfVar(?to, ?kind, ?host) :-
+  OptAssignCast(_, ?to, ?from),
+  HostOfVar(?from, ?kind, ?host).
+#endif
 VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   OptAssignCast(?type, ?to, ?from),
   VarPointsTo(?hctx, ?value, ?ctx, ?from),
@@ -120,9 +132,16 @@ LoadHeapInstanceField(?ctx, ?to, ?sig, ?basehctx, ?basevalue) :-
   LoadInstanceField(?base, ?sig, ?to, _),
   VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base).
 
+#if defined(CORRELATION) && defined(STOREPART)
+StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?ctx, ?from) :-
+  StoreInstanceField(?from, ?base, ?signature, _),
+  VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base),
+  !IgnoredInstanceFieldStore(?from, ?base, ?signature, _).
+#else
 StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?ctx, ?from) :-
   StoreInstanceField(?from, ?base, ?signature, _),
   VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base).
+#endif //CORRELATION && STOREPART
 
 #if !defined(FEATHERWEIGHT_ANALYSIS) && !defined(DISABLE_POINTS_TO)
 //// Much slower in Souffle, for large analyses
@@ -143,10 +162,21 @@ VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
   NotSpecialObject(?value).
  .plan 1:(2,1,3), 2:(3,2,1)
 
+// 下面两条处理 instance load 和 store 的后半部分（真正的pts传递）
+#if defined(CORRELATION) && defined(COLLECTION)
+HostOfVar(?to, ?kind, ?host):-
+  LoadHeapInstanceField(_, ?to, ?sig, _, ?basevalue),
+  HostOfInstanceField(?basevalue, ?sig, ?kind, ?host).
+#endif
 VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   LoadHeapInstanceField(?ctx, ?to, ?signature, ?basehctx, ?basevalue),
   InstanceFieldPointsTo(?hctx, ?value, ?signature, ?basehctx, ?basevalue).
 
+#if defined(CORRELATION) && defined(COLLECTION)
+HostOfInstanceField(?basevalue, ?sig, ?kind, ?host):-
+  StoreHeapInstanceField(?sig, _, ?basevalue, _, ?from),
+  HostOfVar(?from, ?kind, ?host).
+#endif //CORRELATION && COLLECTION
 InstanceFieldPointsTo(?hctx, ?value, ?signature, ?basehctx, ?basevalue) :-
   StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?ctx, ?from),
   VarPointsTo(?hctx, ?value, ?ctx, ?from),
@@ -223,6 +253,12 @@ InstanceFieldPointsTo(?hctx, ?value, ?signature, ?basehctx, ?basevalue) :-
  * Load static fields
  */
 
+#if defined(CORRELATION) && defined(COLLECTION)
+HostOfVar(?to, ?kind, ?host):-
+  LoadStaticField(?sig, ?to, ?method),
+  HostOfStaticField(?sig, ?kind, ?host),
+  Reachable(?method).
+#endif //CORRELATION && COLLECTION
 VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   StaticFieldPointsTo(?hctx, ?value, ?sig),
   LoadStaticField(?sig, ?to, ?inmethod),
@@ -235,11 +271,21 @@ VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
  * Store static fields
  */
 #if !defined(FEATHERWEIGHT_ANALYSIS) && !defined(DISABLE_POINTS_TO)
+
+#if defined(CORRELATION) && defined(COLLECTION)
+HostOfStaticField(?sig, ?kind, ?host):-
+  ReachableStoreStaticFieldFrom(?from),
+  StoreStaticField(?from, ?sig, _),
+  HostOfVar(?from, ?kind, ?host).
+#endif
+
 StaticFieldPointsTo(?hctx, ?value, ?signature) :-
   ReachableStoreStaticFieldFrom(?from),
   StoreStaticField(?from, ?signature, _),
   VarPointsTo(?hctx, ?value, _, ?from).
+
 #endif // FEATHERWEIGHT_ANALYSIS, DISABLE_POINTS_TO
+
 #if defined(FEATHERWEIGHT_ANALYSIS) && defined(INFORMATION_FLOW)
 StaticFieldPointsTo(?hctx, ?value, ?signature) :-
   ReachableStoreStaticFieldFrom(?from),
@@ -314,6 +360,11 @@ Temp2(?ctx, ?to, ?basehctx, ?basevalue) :-
   Temp1(?basevalue, ?to),
   LoadHeapArrayIndex(?ctx, ?to, ?basehctx, ?basevalue).
 
+#if defined(CORRELATION) && defined(COLLECTION)
+HostOfVar(?to, ?kind, ?host):-
+  Temp1(?basevalue, ?to),
+  HostOfArrayIndex(?basevalue, ?kind, ?host).
+#endif //CORRELATION && COLLECTION
 VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   Temp2(?ctx, ?to, ?basehctx, ?basevalue),
   ArrayIndexPointsTo(?hctx, ?value, ?basehctx, ?basevalue).
@@ -372,6 +423,16 @@ OptStoreIntoArray(?hctx, ?value, ?basehctx, ?basevalue) :-
   isImmutableHContext(?hctx).
 #endif // FEATHERWEIGHT_ANALYSIS, INFORMATION_FLOW
 
+
+#if defined(CORRELATION) && defined(COLLECTION)
+.decl StoreHeapArrayIndexForCollectionTemp(?basevalue:Value,?from:Var)
+StoreHeapArrayIndexForCollectionTemp(?basevalue,?from) :-
+  NotEmptyArrayValue(?basevalue),
+  StoreHeapArrayIndex(_, ?basevalue, _, ?from).
+HostOfArrayIndex(?basevalue, ?kind, ?host):-
+  StoreHeapArrayIndexForCollectionTemp(?basevalue,?from),
+  HostOfVar(?from, ?kind, ?host).
+#endif // CORRELATION && COLLECTION
 ArrayIndexPointsTo(?hctx, ?value, ?basehctx, ?basevalue) :-
   OptStoreIntoArray(?hctx, ?value, ?basehctx, ?basevalue),
   NotSpecialObject(?value),
@@ -502,10 +563,35 @@ VarPointsTo(?hctx, ?value, ?callerCtx, ?local) :-
 
 #else
 
+
+#if defined(CORRELATION)
+OptReturnAssign(?callerCtx, ?local, ?calleeCtx, ?return) :-
+  CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?method),
+  AssignReturnValue(?invocation, ?local),
+#if defined(COLLECTION)
+  !RelatedCollectionOutMethod(?method),
+#endif //COLLECTION
+#if defined(IDMETHOD)
+  !SpecialHandledReturnVar(?return),
+#endif //IDMETHOD
+#if defined(LOADPART)
+  !IgnoredReturnVarLoad(?return),
+#endif //LOADPART
+  ReturnVar(?return, ?method).
+#else
 OptReturnAssign(?callerCtx, ?local, ?calleeCtx, ?return) :-
   CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?method),
   AssignReturnValue(?invocation, ?local),
   ReturnVar(?return, ?method).
+#endif //CORRELATION
+
+//return vpt logic
+#if defined(CORRELATION) && defined(COLLECTION)
+HostOfVar(?to, ?kind, ?host):-
+  OptReturnAssign(_, ?to, _, ?from),
+  HostOfVar(?from, ?kind, ?host),
+  !NotPassingReturnAssignFrom(?from).
+#endif //CORRELATION && COLLECTION
 
 VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
   OptRetVarPointsTo(?hctx, ?value, ?fromCtx, ?from),
@@ -548,6 +634,13 @@ VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
  *  OptArgAssign(?toCtx, ?to, ?fromCtx, ?from).
  *.plan 1:(2,1)
  **/
+
+//arg->formal logic
+#if defined(CORRELATION) && defined(COLLECTION)
+HostOfVar(?to, ?kind, ?host):-
+  OptArgAssign(_, ?to, _, ?from, _),
+  HostOfVar(?from, ?kind, ?host).
+#endif //CORRELATION && COLLECTION
 
 VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
   OptArgVarPointsTo(?hctx, ?value, ?fromCtx, ?from),
@@ -600,7 +693,9 @@ configuration.ContextRequest(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, 
 
 // The main analysis is merely looking up the previously created
 // context objects.
-#ifdef X_ZIPPER
+
+//this vpts logic
+#if defined(X_ZIPPER)
 
 VarPointsTo(?hctx, ?value, ?calleeCtx, ?this) :-
   configuration.ContextRequest(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, _),
@@ -614,6 +709,20 @@ VarPointsTo(?hctx, ?value, ?immCtx, ?this) :-
   ThisVar(?tomethod, ?this),
   !ZipperPrecisionCriticalMethod(?tomethod).
 
+#elif defined(COLLECTION3OBJ)
+
+VarPointsTo(?hctx, ?value, ?calleeCtx, ?this) :-
+  configuration.ContextRequest(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, _),
+  configuration.ContextResponse(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, ?calleeCtx),
+  ThisVar(?tomethod, ?this),
+  CollectionMethods(?tomethod).
+
+VarPointsTo(?hctx, ?value, ?immCtx, ?this) :-
+  configuration.ContextRequest(_, ?hctx, ?invocation, ?value, ?tomethod, _),
+  isImmutableContext(?immCtx),
+  ThisVar(?tomethod, ?this),
+  !CollectionMethods(?tomethod).
+
 #else
 
 VarPointsTo(?hctx, ?value, ?calleeCtx, ?this) :-
@@ -625,7 +734,7 @@ VarPointsTo(?hctx, ?value, ?calleeCtx, ?this) :-
  .plan 1:(2,1,3)
 #endif // X_CONTEXT_REMOVER
 
-#endif // X_ZIPPER
+#endif // X_ZIPPER or COLLECTION3OBJ
 
 /**
  * Super method invocations

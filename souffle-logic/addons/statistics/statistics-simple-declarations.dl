@@ -30,7 +30,8 @@ OUTPUT_STATS(Stats_Simple_ReachableVar)
  ***************************************************/
 
 .decl Stats_Simple_InsensArrayIndexPointsTo(?value:Value, ?basevalue:Value)
-OUTPUT_STATS(Stats_Simple_InsensArrayIndexPointsTo)
+//OUTPUT_STATS(Stats_Simple_InsensArrayIndexPointsTo)
+.output Stats_Simple_InsensArrayIndexPointsTo(IO="file",filename="Stats_Simple_InsensArrayIndexPointsTo",delimiter="\t")
 
 .decl Stats_Simple_Application_InsensArrayIndexPointsTo(?value:Value, ?basevalue:Value)
 OUTPUT_STATS(Stats_Simple_Application_InsensArrayIndexPointsTo)
@@ -45,10 +46,13 @@ OUTPUT_STATS(Stats_Simple_Application_ArrayIndexPointsTo)
  ***************************************************/
 
 .decl Stats_Simple_InsensInstanceFieldPointsTo(?value:Value, ?sig:Field, ?basevalue:Value)
-OUTPUT_STATS(Stats_Simple_InsensInstanceFieldPointsTo)
+//OUTPUT_STATS(Stats_Simple_InsensInstanceFieldPointsTo)
+.output Stats_Simple_InsensInstanceFieldPointsTo(IO="file",filename="Stats_Simple_InsensInstanceFieldPointsTo",delimiter="\t")
 
 .decl Stats_Simple_InsensStaticFieldPointsTo(?value:Value, ?sig:Field)
-OUTPUT_STATS(Stats_Simple_InsensStaticFieldPointsTo)
+//OUTPUT_STATS(Stats_Simple_InsensStaticFieldPointsTo)
+.output Stats_Simple_InsensStaticFieldPointsTo(IO="file",filename="Stats_Simple_InsensStaticFieldPointsTo",delimiter="\t")
+
 
 .decl Stats_Simple_Application_InsensInstanceFieldPointsTo(?value:Value, ?sig:Field, ?basevalue:Value)
 OUTPUT_STATS(Stats_Simple_Application_InsensInstanceFieldPointsTo)
@@ -131,7 +135,8 @@ OUTPUT_STATS(Stats_Simple_Application_EmptyReachableVirtualMethodInvocation)
 OUTPUT_STATS(Stats_Simple_ReachableCast)
 
 .decl Stats_Simple_PotentiallyFailingCast(?type:Type, ?from:Var, ?to:Var)
-OUTPUT_STATS(Stats_Simple_PotentiallyFailingCast)
+.output Stats_Simple_PotentiallyFailingCast
+//OUTPUT_STATS(Stats_Simple_PotentiallyFailingCast)
 
 .decl Stats_Simple_Application_Cast(?type:Type, ?from:Var, ?to:Var, ?inmethod:Method)
 OUTPUT_STATS(Stats_Simple_Application_Cast)

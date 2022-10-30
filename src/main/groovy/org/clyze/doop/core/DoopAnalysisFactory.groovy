@@ -59,7 +59,9 @@ class DoopAnalysisFactory implements AnalysisFactory<DoopAnalysis> {
 			"1-object-1-type-sensitive+heap"     : "OneObjectOneTypeSensitivePlusHeapConfiguration",
 			"web-app-sensitive"                  : "WebAppSensitiveConfiguration",
 			"sticky-2-object-sensitive"          : "StickyTwoObjectSensitiveConfiguration",
-			"adaptive-2-object-sensitive+heap"   : "AdaptiveTwoObjectSensitivePlusHeapConfiguration"
+			"adaptive-2-object-sensitive+heap"   : "AdaptiveTwoObjectSensitivePlusHeapConfiguration",
+			"correlation"                        : "CorrelationConfiguration",
+			"collection-3obj"                    : "Collection3objConfiguration"
 	]
 
 	/**
@@ -161,6 +163,18 @@ class DoopAnalysisFactory implements AnalysisFactory<DoopAnalysis> {
 //				return new SouffleGenericsMultiPhaseAnalysis(options, context, commandsEnv)
 //			}
 			else {
+				log.info "TESTING1"
+				if(options.ANALYSIS.value == "correlation"){
+					log.info "TESTING2"
+					options.CORRELATION.value = true
+				}
+				if(options.ANALYSIS.value == "collection-3obj"){
+					log.info "TESTING3OBJ"
+					options.COLLECTION3OBJ.value = true
+				}		
+				options.GENERATE_JIMPLE.value = true
+				//options.APP_ONLY.value = true
+				options.SOUFFLE_PROFILE.value = true
 				return new SouffleAnalysis(options, context, commandsEnv)
 			}
 		}

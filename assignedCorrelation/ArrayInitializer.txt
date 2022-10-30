@@ -1,0 +1,12 @@
+<java.util.Arrays$ArrayList: void <init>(java.lang.Object[])>	0	-1
+<java.util.Collections: boolean addAll(java.util.Collection,java.lang.Object[])>	1	0
+<org.python.core.PyObjectList: void <init>(org.python.core.PyObject[])>	0	-1
+<org.python.core.PyList: void <init>(org.python.core.PyObject[])>	0	-1
+<org.python.core.PyTuple: void <init>(org.python.core.PyObject[])>	0	-1
+<soot.util.ArraySet: void <init>(java.lang.Object[])>	0	-1
+<soot.util.TrustingMonotonicArraySet: void <init>(java.lang.Object[])>	0	-1
+<java.util.concurrent.CopyOnWriteArrayList: void <init>(java.lang.Object[])>	0	-1
+<groovy.lang.Tuple: void <init>(java.lang.Object[])>	0	-1
+<sun.awt.X11.XCreateWindowParams: void <init>(java.lang.Object[])>	0	-1
+<javax.swing.UIDefaults: void <init>(java.lang.Object[])>	0	-1
+<javax.swing.UIDefaults: void putDefaults(java.lang.Object[])>	0	-1

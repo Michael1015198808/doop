@@ -1,0 +1,338 @@
+//IDB for set-pattern
+.decl IgnoredInstanceFieldStore(?from:Var, ?base:Var, ?signature:Field, ?inmethod:Method)
+.output IgnoredInstanceFieldStore(IO="file",filename="IgnoredInstanceFieldStore.csv",delimiter="\t")
+
+.decl AbstractStoreCandidate(?from:Var, ?base:Var, ?sig:Field, ?inmethod:Method, ?fromAllowedType:Type, ?baseAllowedType:Type)
+.output AbstractStoreCandidate(IO="file",filename="AbstractStoreCandidate.csv",delimiter="\t")
+
+.decl AbstractInstanceStore(?from:Var, ?base:Var, ?sig:Field, ?inmethod:Method, ?fromAllowedType:Type, ?baseAllowedType:Type)
+.output AbstractInstanceStore(IO="file",filename="AbstractInstanceStore.csv",delimiter="\t")
+
+.decl AbstractInstanceFieldPointsTo(?htcx:configuration.HContext, ?value:Value, ?sig:Field, ?basehctx:configuration.HContext, ?basevalue:Value)
+.output AbstractInstanceFieldPointsTo(IO="file",filename="AbstractInstanceFieldPointsTo.csv",delimiter="\t")
+
+.decl ReachableMethodFromOtherSource(?method:Method)
+.output ReachableMethodFromOtherSource(IO="file",filename="ReachableMethodFromOtherSource.csv",delimiter="\t")
+
+
+ReachableMethodFromOtherSource(?register):-
+    ?register = "<java.lang.ref.Finalizer: void register(java.lang.Object)>".
+
+ReachableMethodFromOtherSource(?meth) :-
+    ForcedReachable(?meth).
+
+ReachableMethodFromOtherSource(?method) :-
+    basic.MainMethodDeclaration(?method).
+
+ReachableMethodFromOtherSource(?method) :-
+    ImplicitReachable(?method).
+
+ReachableMethodFromOtherSource(?clinit) :-
+    ClassInitializer(_, ?clinit).
+
+ReachableMethodFromOtherSource(?run) :-
+#if defined(JRE13) || defined(JRE14)
+    ?start = "<java.lang.Thread: void start()>",
+#else
+    ?start = "<java.lang.Thread: void start0()>",
+#endif // JRE13, JRE14
+    ThisVar(?start, ?startThis),
+    Var_Type(?startThis, ?varType),
+    basic.MethodLookup("run", "void()", ?varType, ?run).
+
+ReachableMethodFromOtherSource(?signature) :-
+    ?signature = "<java.lang.ThreadGroup: void <init>()>".
+ReachableMethodFromOtherSource(?signature) :-
+    ?signature = "<java.lang.ThreadGroup: void <init>(java.lang.ThreadGroup,java.lang.String)>".
+ReachableMethodFromOtherSource(?signature) :-
+    ?signature = "<java.lang.Thread: void <init>(java.lang.ThreadGroup,java.lang.String)>".
+
+// instance field store need to be ignored (without passing pts from var ?from to baseObj's field)
+// base.sig = from
+// both base and from are inmethod's formal param(or thisVar)
+IgnoredInstanceFieldStore(?from, ?base, ?sig, ?inmethod) :- 
+    StoreInstanceField(?from, ?base, ?sig, ?inmethod),
+    FormalParamNotRedefinedExceptForSpecialDefine(?inmethod, ?base, _),
+    FormalParamNotRedefinedExceptForSpecialDefine(?inmethod, ?from, _),
+    ?inmethod != "<java.lang.Thread: void init(java.lang.ThreadGroup,java.lang.Runnable,java.lang.String,long)>",
+    ?inmethod != "<java.lang.ThreadGroup: void <init>(java.lang.Void,java.lang.ThreadGroup,java.lang.String)>",
+    !ReachableMethodFromOtherSource(?inmethod).
+
+.decl AbstractStoreCandidateTemp(?newfrom:Var, ?newbase:Var, ?caller:Method, ?callee:Method, ?baseindex:number, ?fromindex:number)
+.output AbstractStoreCandidateTemp(IO="file",filename="AbstractStoreCandidateTemp.csv",delimiter="\t")
+
+.decl AbstractStoreCandidateTemp2(?fromindex:number, ?baseindex:number, ?callee:Method, ?sig:Field, ?fromAllowedType:Type, ?baseAllowedType:Type)
+.output AbstractStoreCandidateTemp2(IO="file",filename="AbstractStoreCandidateTemp2.csv",delimiter="\t")
+
+AbstractStoreCandidateTemp2(?fromindex, ?baseindex, ?callee, ?sig, ?fromAllowedType, ?baseAllowedType):-
+    IgnoredInstanceFieldStore(?from, ?base, ?sig, ?callee),
+    Var_Type(?from, ?fromAllowedType),
+    Var_Type(?base, ?baseAllowedType),
+    MethodFormalParamAndThisIncludingLocal(?fromindex, ?callee, ?from),
+    MethodFormalParamAndThisIncludingLocal(?baseindex, ?callee, ?base).
+
+AbstractStoreCandidateTemp(?newfrom, ?newbase, ?caller, ?callee, ?baseindex, ?fromindex):-
+    CallGraphEdge(_, ?invocation, _, ?callee),
+    Instruction_Method(?invocation, ?caller),
+    InvocationActualParamAndBase(?baseindex, ?invocation, ?newbase),
+    InvocationActualParamAndBase(?fromindex, ?invocation, ?newfrom).
+
+AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?baseAllowedType) :-
+    AbstractStoreCandidateTemp(?newfrom, ?newbase, ?caller, ?callee, ?baseindex, ?fromindex),
+    AbstractStoreCandidateTemp2(?fromindex, ?baseindex, ?callee, ?sig, ?fromAllowedType, ?baseAllowedType).
+
+AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?baseAllowedType) :-
+    AbstractStoreCandidate(?from, ?base, ?sig, ?callee, ?fromAllowedType, ?baseAllowedType),
+    CallGraphEdge(_, ?invocation, _, ?callee),
+    Instruction_Method(?invocation, ?caller),
+    FormalParamNotRedefinedExceptForSpecialDefine(?callee, ?base, ?baseindex),
+    InvocationActualParamAndBase(?baseindex, ?invocation, ?newbase),
+    FormalParamNotRedefinedExceptForSpecialDefine(?callee, ?from, ?fromindex),
+    InvocationActualParamAndBase(?fromindex, ?invocation, ?newfrom).
+
+AbstractInstanceStore(?from, ?base, ?sig, ?inmethod, ?fromAllowedType, ?baseAllowedType) :-
+    AbstractStoreCandidate(?from, ?base, ?sig, ?inmethod, ?fromAllowedType, ?baseAllowedType),
+    !FormalParamNotRedefinedExceptForSpecialDefine(?inmethod, ?from,_).
+AbstractInstanceStore(?from, ?base, ?sig, ?inmethod, ?fromAllowedType, ?baseAllowedType) :-
+    AbstractStoreCandidate(?from, ?base, ?sig, ?inmethod, ?fromAllowedType, ?baseAllowedType),
+    !FormalParamNotRedefinedExceptForSpecialDefine(?inmethod, ?base,_).
+AbstractInstanceStore(?from, ?base, ?sig, ?inmethod, ?fromAllowedType, ?baseAllowedType) :-
+    AbstractStoreCandidate(?from, ?base, ?sig, ?inmethod, ?fromAllowedType, ?baseAllowedType),
+    ReachableMethodFromOtherSource(?inmethod).
+
+//double check : allowed type check and store check.
+//optimize this rule
+// AbstractInstanceFieldPointsTo(?hctx, ?value, ?sig, ?basehctx, ?basevalue) :-
+//     AbstractInstanceStore(?from, ?base, ?sig, _, ?fromAllowedType, ?baseAllowedType),
+//     VarPointsTo(?basehctx, ?basevalue, _, ?base),
+//     VarPointsTo(?hctx, ?value, _, ?from),
+//     //check base value and value for instance store as original rules
+//     NotSpecialObject(?value),
+//     !Value_Null(?basevalue),
+//     // check actual param -> formal param pts passing as original rules
+//     Value_Type(?value, ?valuetype),
+//     basic.SubtypeOf(?valuetype, ?fromAllowedType),
+//     Value_Type(?basevalue, ?basevaluetype),
+//     basic.SubtypeOf(?basevaluetype, ?baseAllowedType).
+.decl AbstractInstanceFieldPointsToTemp(?from:Var, ?basehctx:configuration.HContext, ?basevalue:Value, ?sig:Field, ?fromAllowedType:Type)
+.output AbstractInstanceFieldPointsToTemp(IO="file",filename="AbstractInstanceFieldPointsToTemp.csv",delimiter="\t")
+
+AbstractInstanceFieldPointsTo(?hctx, ?value, ?sig, ?basehctx, ?basevalue) :-
+    AbstractInstanceFieldPointsToTemp(?from, ?basehctx, ?basevalue, ?sig, ?fromAllowedType),
+    VarPointsTo(?hctx, ?value, _, ?from),
+    NotSpecialObject(?value),
+    Value_Type(?value, ?valuetype),
+    basic.SubtypeOf(?valuetype, ?fromAllowedType).
+
+AbstractInstanceFieldPointsToTemp(?from, ?basehctx, ?basevalue, ?sig, ?fromAllowedType):-
+    AbstractInstanceStore(?from, ?base, ?sig, _, ?fromAllowedType, ?baseAllowedType),
+    VarPointsTo(?basehctx, ?basevalue, _, ?base),
+    !Value_Null(?basevalue),
+    Value_Type(?basevalue, ?basevaluetype),
+    basic.SubtypeOf(?basevaluetype, ?baseAllowedType).
+
+//optimize this rule
+.decl HostOfInstanceFieldTemp(?from:Var, ?basevalue:Value, ?sig:Field)
+.output HostOfInstanceFieldTemp(IO="file",filename="HostOfInstanceFieldTemp.csv",delimiter="\t")
+
+#ifdef COLLECTION
+HostOfInstanceField(?basevalue, ?sig, ?kind, ?host):-
+    HostOfInstanceFieldTemp(?from, ?basevalue, ?sig),
+    HostOfVar(?from, ?kind, ?host).
+HostOfInstanceFieldTemp(?from, ?basevalue, ?sig):-
+    AbstractInstanceStore(?from, ?base, ?sig, _, _, _),
+    VarPointsTo(_, ?basevalue, _, ?base).
+#endif
+
+InstanceFieldPointsTo(?hctx, ?value, ?sig, ?basehctx, ?basevalue) :-
+    AbstractInstanceFieldPointsTo(?hctx, ?value, ?sig, ?basehctx, ?basevalue).
+
+//special handling of reflection to ensure soundness, and gain some precision.
+#ifdef TAMIFLEX
+//inner most store -> temp
+AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?baseAllowedType) :-
+    IgnoredInstanceFieldStore(?from, ?base, ?sig, ?callee),
+    Var_Type(?from, ?fromAllowedType),
+    Var_Type(?base, ?baseAllowedType),
+    MethodFormalParamAndThisIncludingLocal(-1, ?callee, ?from),
+    MethodFormalParamAndThisIncludingLocal(-1, ?callee, ?base),
+    TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
+    Instruction_Method(?invocation, ?caller),
+    TamiflexInvocationBase(?invocation, ?newbase),
+    TamiflexInvocationBase(?invocation, ?newfrom).
+
+AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?baseAllowedType) :-
+    IgnoredInstanceFieldStore(?from, ?base, ?sig, ?callee),
+    Var_Type(?from, ?fromAllowedType),
+    Var_Type(?base, ?baseAllowedType),
+    MethodFormalParamAndThisIncludingLocal(?fromindex, ?callee, ?from),
+    ?fromindex != -1,
+    MethodFormalParamAndThisIncludingLocal(-1, ?callee, ?base),
+    TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
+    Instruction_Method(?invocation, ?caller),
+    TamiflexInvocationBase(?invocation, ?newbase),
+    TamiflexInvocationActualParam(?invocation, ?newfrom).
+
+AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?baseAllowedType) :-
+    IgnoredInstanceFieldStore(?from, ?base, ?sig, ?callee),
+    Var_Type(?from, ?fromAllowedType),
+    Var_Type(?base, ?baseAllowedType),
+    MethodFormalParamAndThisIncludingLocal(-1, ?callee, ?from),
+    MethodFormalParamAndThisIncludingLocal(?baseindex, ?callee, ?base),
+    ?baseindex != -1,
+    TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
+    Instruction_Method(?invocation, ?caller),
+    TamiflexInvocationBase(?invocation, ?newfrom),
+    TamiflexInvocationActualParam(?invocation, ?newbase).
+
+AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?baseAllowedType) :-
+    IgnoredInstanceFieldStore(?from, ?base, ?sig, ?callee),
+    Var_Type(?from, ?fromAllowedType),
+    Var_Type(?base, ?baseAllowedType),
+    MethodFormalParamAndThisIncludingLocal(?fromindex, ?callee, ?from),
+    MethodFormalParamAndThisIncludingLocal(?baseindex, ?callee, ?base),
+    ?baseindex != -1,
+    ?fromindex != -1,
+    TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
+    Instruction_Method(?invocation, ?caller),
+    TamiflexInvocationActualParam(?invocation, ?newfrom),
+    TamiflexInvocationActualParam(?invocation, ?newbase).
+
+//temp->temp
+
+AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?baseAllowedType) :-
+    AbstractStoreCandidate(?from, ?base, ?sig, ?callee, ?fromAllowedType, ?baseAllowedType),
+    TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
+    Instruction_Method(?invocation, ?caller),
+    FormalParamNotRedefinedExceptForSpecialDefine(?callee, ?base, -1),
+    TamiflexInvocationBase(?invocation, ?newbase),
+    FormalParamNotRedefinedExceptForSpecialDefine(?callee, ?from, -1),
+    TamiflexInvocationBase(?invocation, ?newfrom).
+
+AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?baseAllowedType) :-
+    AbstractStoreCandidate(?from, ?base, ?sig, ?callee, ?fromAllowedType, ?baseAllowedType),
+    TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
+    Instruction_Method(?invocation, ?caller),
+    FormalParamNotRedefinedExceptForSpecialDefine(?callee, ?base, ?baseindex),
+    ?baseindex != -1,
+    TamiflexInvocationActualParam(?invocation, ?newbase),
+    FormalParamNotRedefinedExceptForSpecialDefine(?callee, ?from, -1),
+    TamiflexInvocationBase(?invocation, ?newfrom).
+
+AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?baseAllowedType) :-
+    AbstractStoreCandidate(?from, ?base, ?sig, ?callee, ?fromAllowedType, ?baseAllowedType),
+    TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
+    Instruction_Method(?invocation, ?caller),
+    FormalParamNotRedefinedExceptForSpecialDefine(?callee, ?base, -1),
+    TamiflexInvocationBase(?invocation, ?newbase),
+    FormalParamNotRedefinedExceptForSpecialDefine(?callee, ?from, ?fromindex),
+    ?fromindex != -1,
+    TamiflexInvocationActualParam(?invocation, ?newfrom).
+
+AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?baseAllowedType) :-
+    AbstractStoreCandidate(?from, ?base, ?sig, ?callee, ?fromAllowedType, ?baseAllowedType),
+    TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
+    Instruction_Method(?invocation, ?caller),
+    FormalParamNotRedefinedExceptForSpecialDefine(?callee, ?base, ?baseindex),
+    ?baseindex != -1,
+    TamiflexInvocationActualParam(?invocation, ?newbase),
+    FormalParamNotRedefinedExceptForSpecialDefine(?callee, ?from, ?fromindex),
+    ?fromindex != -1,
+    TamiflexInvocationActualParam(?invocation, ?newfrom).
+
+#endif //TAMIFLEX
+
+
+//IDB for get-pattern
+// .decl BannedReturnVar(?var:Var)
+// .decl GetStmt(?var:Var, ?base:Var, ?sig:Field, ?inmethod:Method) //getstmt is a logic extension of BannedReturnVar
+// .output GetStmt(IO="file",filename="GetStmt.csv",delimiter="\t")
+
+// .decl AbstractInstanceLoad(?to:Var, ?base:Var, ?sig:Field, ?inmethod:Method, ?toAllowedType:Type, ?baseAllowedType:Type)
+// .output AbstractInstanceLoad(IO="file",filename="AbstractInstanceLoad.csv",delimiter="\t")
+
+// .decl GetStmtReturnVarPointsTo(?htcx:configuration.HContext, ?value:Value, ?ctx:configuration.Context, ?resutn:Var)
+// .output GetStmtReturnVarPointsTo(IO="file",filename="GetStmtReturnVarPointsTo.csv",delimiter="\t")
+ 
+// .decl InvocationActualParamAndBaseInMethod(?baseOrActualParam:Var, ?inmethod:Method)
+
+// .decl ReturnVarWithoutSideEffect(?var:Var, ?method:Method)
+
+// InvocationActualParamAndBaseInMethod(?var, ?inmethod):-
+//     InvocationActualParamAndBase(_, ?invocation, ?var),
+//     Instruction_Method(?invocation, ?inmethod).
+
+// //return var not used as RValue or invoke's param&base
+// ReturnVarWithoutSideEffect(?to, ?method) :-
+//     ReturnVar(?to, ?method),
+//     !AssignHeapAllocation(?to, _, ?method),
+//     !AssignCast(_, ?to, _, ?method),
+//     !AssignLocal(?to, _, ?method),
+//     !StoreInstanceField(?to, _, _, ?method),
+//     !StoreStaticField(?to, _,?method),
+//     !StoreArrayIndex(?to, _, ?method),
+//     !InvocationActualParamAndBaseInMethod(?to, ?method).
+
+// //original BanendReturnVar
+// GetStmt(?to, ?base, ?sig, ?method):-
+//     LoadInstanceField(?base, ?sig, ?to, ?method),
+//     MethodFormalParamAndThis(_, ?method, ?base),
+//     //return var not as RValue or base/actual param
+//     ReturnVarWithoutSideEffect(?to, ?method).
+
+// //derived BannedReturnVar
+// GetStmt(?result, ?callerBase, ?sig, ?caller) :-
+// // callee's return is banned
+//     CallGraphEdge(_, ?invocation, _, ?callee),
+//     GetStmt(?calleeRet, ?calleeBase, ?sig, ?callee),
+//     ReturnVar(?calleeRet, ?callee),
+// // callsite's base is caller's formal param
+//     Instruction_Method(?invocation, ?caller),
+//     InvocationActualParamAndBase(-1, ?invocation, ?invoBase),
+//     MethodFormalParamAndThis(_, ?caller, ?invoBase),
+// // callsite's lhs is caller's return
+//     AssignReturnValue(?invocation,?result),
+//     // ReturnVar(?result, ?caller),
+//     ReturnVarWithoutSideEffect(?result, ?caller),
+// // map index of callee's getstmt base to callsite
+//     MethodFormalParamAndThis(index, ?callee, ?calleeBase),
+//     InvocationActualParamAndBase(index, ?invocation, ?callerBase).
+
+// //when callee has banned return var(getstmt), the caller need to create absract load field.
+// AbstractInstanceLoad(?to, ?callerBase, ?sig, ?caller, ?toAllowedType, ?baseAllowedType) :-
+//     //callee has banned return var
+//     CallGraphEdge(_, ?invocation, _, ?callee),
+//     GetStmt(_, ?calleeBase, ?sig, ?callee),
+//     //map base at callsite
+//     Instruction_Method(?invocation, ?caller),
+//     AssignReturnValue(?invocation,?to),
+//     MethodFormalParamAndThis(index, ?callee, ?calleeBase),
+//     InvocationActualParamAndBase(index, ?invocation, ?callerBase),
+//     //type allowed.
+//     Var_Type(?to, ?toAllowedType),
+//     Var_Type(?callerBase, ?baseAllowedType),
+//     !RelatedCollectionOutMethod(?callee).
+
+// GetStmtReturnVarPointsTo(?hctx, ?value, ?ctx, ?to):-
+//     AbstractInstanceLoad(?to, ?base, ?sig, _, ?toAllowedType, ?baseAllowedType),
+//     VarPointsTo(?basehctx, ?basevalue, _, ?base),
+//     InstanceFieldPointsTo(?hctx, ?value, ?sig, ?basehctx, ?basevalue),
+//     //check base value and value for instance store as original rules
+//     NotSpecialObject(?value),
+//     !Value_Null(?basevalue),
+//     // check instance field -> result var pts passing as original rules
+//     Value_Type(?value, ?valuetype),
+//     basic.SubtypeOf(?valuetype, ?toAllowedType),
+//     Value_Type(?basevalue, ?basevaluetype),
+//     basic.SubtypeOf(?basevaluetype, ?baseAllowedType),
+//     ?ctx = "<<immutable-context>>".
+
+// HostOfVar(?host, ?to):-
+//   AbstractInstanceLoad(?to, ?base, ?sig, _, _, _),
+//   VarPointsTo(_, ?basevalue, _, ?base),
+//   HostOfInstanceField(?host, ?basevalue, ?sig).
+// ContainerKindOfVar(?to, ?kind) :-
+//   AbstractInstanceLoad(?to, ?base, ?sig, _, _, _),
+//   VarPointsTo(_, ?basevalue, _, ?base),
+//   ContainerKindOfInstanceField(?basevalue, ?sig, ?kind).
+

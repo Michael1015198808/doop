@@ -493,10 +493,14 @@ class FactGenerator implements Runnable {
                exception does not occur anywhere else.
             */
         }
-        else if(left instanceof Local && right instanceof ThisRef)
+        else if(left instanceof Local && right instanceof ThisRef){
             _writer.writeAssignThisToLocal(ii, (Local) left);
-        else if(left instanceof Local && right instanceof ParameterRef)
+            _writer.writeLocalThis(ii,(Local) left);
+        }
+        else if(left instanceof Local && right instanceof ParameterRef){
             _writer.writeAssignLocal(ii, (Local) left, (ParameterRef) right);
+            _writer.writeLocalParam(ii, (Local) left, (ParameterRef) right);
+        }
         else
             throw new RuntimeException("Cannot handle identity statement: " + stmt);
     }

@@ -1,0 +1,244 @@
+.decl _HostClass(?class:Type)
+.input _HostClass(IO="file", filename="HostClasses.txt", delimiter="\t")
+// .output _HostClass(IO="file",filename="InputHostClasses.csv",delimiter="\t")
+
+
+.decl _IteratorClass(?class:Type)
+.input _IteratorClass(IO="file", filename="iteratorClass.txt", delimiter="\t")
+// .output _IteratorClass(IO="file",filename="InputiteratorClass.csv",delimiter="\t")
+
+
+.decl _CorrelationExtender(?inmethod:Method)
+.input _CorrelationExtender(IO="file", filename="CorrelationExtenders.txt", delimiter="\t")
+// .output _CorrelationExtender(IO="file",filename="InputCorrelationExtenders.csv",delimiter="\t")
+
+
+.decl _CorrelationExtenderOne(?inmtehod:Method)
+.input _CorrelationExtenderOne(IO="file", filename="CorrelationExtenders1.txt", delimiter="\t")
+// .output _CorrelationExtenderOne(IO="file",filename="InputCorrelationExtender1.csv",delimiter="\t")
+
+
+.decl _UnrelatedInvokes(?inmethod:Method, ?index:number)
+.input _UnrelatedInvokes(IO="file", filename="unrelatedInvokes.txt", delimiter="\t")
+// .output _UnrelatedInvokes(IO="file",filename="InputUnrelatedInvokes.csv",delimiter="\t")
+
+.decl _CollectionOut(?inmethod:Method)
+.input _CollectionOut(IO="file", filename="CollectionOut.txt", delimiter="\t")
+// .output _CollectionOut(IO="file",filename="InputCollectionOut.csv",delimiter="\t")
+
+.decl _MapValueOut(?inmethod:Method)
+.input _MapValueOut(IO="file", filename="MapValueOut.txt", delimiter="\t")
+// .output _MapValueOut(IO="file",filename="InputMapValueOut.csv",delimiter="\t")
+
+
+.decl _MapKeyOut(?inmethod:Method)
+.input _MapKeyOut(IO="file", filename="MapKeyOut.txt", delimiter="\t")
+// .output _MapKeyOut(IO="file",filename="InputMapKeyOut.csv",delimiter="\t")
+
+.decl _ToArrayMethods(?method:Method)
+.input _ToArrayMethods(IO="file", filename="toArrayMethods.txt", delimiter="\t")
+// .output _ToArrayMethods(IO="file",filename="InputtoArrayMethods.csv",delimiter="\t")
+
+.decl _InMethod(?category:symbol, ?method:Method, ?index:number)
+.input _InMethod(IO="file", filename="InMethod.txt", delimiter="\t")
+// .output _InMethod(IO="file",filename="InputInMethod.csv",delimiter="\t")
+
+
+.decl _InWithCons(?category:symbol, ?method:Method, ?index:number, ?cons:Type)
+.input _InWithCons(IO="file", filename="InWithCons.txt", delimiter="\t")
+// .output _InWithCons(IO="file",filename="InputInWithCons.csv",delimiter="\t")
+
+.decl _ArrayInitializer(?constructor:Method, ?index0:number, ?index1:number)
+.input _ArrayInitializer(IO="file", filename="ArrayInitializer.txt", delimiter="\t")
+// .output _ArrayInitializer(IO="file",filename="InputArrayInitializer.csv",delimiter="\t")
+
+.decl _EntrySetClass(?entrySetClass:Type, ?allocClass:Type)
+.input _EntrySetClass(IO="file", filename="EntrySet.txt", delimiter="\t")
+// .output _EntrySetClass(IO="file",filename="InputEntrySetClass.csv",delimiter="\t")
+
+
+// start 
+.decl isHostClass(?class:Type)
+// .output isHostClass(IO="file",filename="isHostClass.csv",delimiter="\t")
+
+.decl CorrelationExtender(?inmethod:Method, ?index0:number, ?index1:number)
+// .output CorrelationExtender(IO="file",filename="CorrelationExtender.csv",delimiter="\t")
+
+.decl UnrelatedInvokes(?invocation:MethodInvocation)
+// .output UnrelatedInvokes(IO="file",filename="UnrelatedInvokes.csv",delimiter="\t")
+
+.decl OutMethodsA(?inmethod:Method, ?category:symbol)
+// .output OutMethodsA(IO="file",filename="OutMethodsA.csv",delimiter="\t")
+
+.decl OutMethodsB(?kind:symbol, ?methodSubstring:symbol, ?category:symbol)
+// .output OutMethodsB(IO="file",filename="OutMethodsB.csv",delimiter="\t")
+
+.decl ToArrayMethods(?method:Method)
+// .output ToArrayMethods(IO="file",filename="ToArrayMethods.csv",delimiter="\t")
+
+.decl MethodParameterConstraint(?inmethod:Method, ?index:number, ?declaringClass:ClassType, ?category:symbol)
+// .output MethodParameterConstraint(IO="file",filename="MethodParameterConstraint.csv",delimiter="\t")
+
+.decl HostPassers(?kind1:symbol, ?methodSubstring:symbol, ?kind2:symbol)
+// .output HostPassers(IO="file",filename="HostPassers.csv",delimiter="\t")
+
+.decl HostClassInnerClass(?class:Type)
+// .output HostClassInnerClass(IO="file",filename="HostClassInnerClass.csv",delimiter="\t")
+
+.decl ArrayInitializer(?constructor:Method, ?index0:number, ?index1:number)
+// .output ArrayInitializer(IO="file",filename="ArrayInitializer.csv",delimiter="\t")
+
+.decl EntrySetClass(?entrySetClass:Type, ?allocClass:Type)
+// .output EntrySetClass(IO="file",filename="EntrySetClass.csv",delimiter="\t")
+
+.decl IteratorClass(?class:Type)
+// .output IteratorClass(IO="file",filename="IteratorClass.csv",delimiter="\t")
+
+isHostClass(?class) :-
+    _HostClass(?class),
+    isClassType(?class).
+    
+CorrelationExtender(?inmethod, ?index0, ?index1) :-
+    _CorrelationExtender(?inmethod),
+    isMethod(?inmethod),
+    ?index0 = -1, //base
+    ?index1 = 0.
+
+CorrelationExtender(?inmethod, ?index0, ?index1) :-
+    _CorrelationExtenderOne(?inmethod),
+    isMethod(?inmethod),
+    ?index0 = -1, //base
+    ?index1 = 1. 
+
+CorrelationExtender(?inmethod, ?index0, ?index1) :-
+    ?inmethod = "<java.util.Collections: void copy(java.util.List,java.util.List)>",
+    ?index0 = 0,
+    ?index1 = 1.
+
+CorrelationExtender(?inmethod, ?index0, ?index1) :-
+    (?inmethod = "<java.util.concurrent.SynchronousQueue: int drainTo(java.util.Collection)>";
+    ?inmethod = "<java.util.concurrent.SynchronousQueue: int drainTo(java.util.Collection,int)>"),
+    ?index0 = 0,
+    ?index1 = -1.
+
+CorrelationExtender(?inmethod, ?index0, ?index1) :-
+    (?inmethod = "<javax.security.auth.Subject$SecureSet: void <init>(javax.security.auth.Subject,int,java.util.Set)>";
+    ?inmethod = "<EDU.purdue.cs.bloat.util.Graph$EdgeSet: void <init>(EDU.purdue.cs.bloat.util.Graph,EDU.purdue.cs.bloat.util.GraphNode,java.util.Set)>"),
+    ?index0 = -1,
+    ?index1 = 2.
+
+
+UnrelatedInvokes(?invocation):-
+    _UnrelatedInvokes(?inmethod,?index),
+    _VirtualMethodInvocation(?invocation, ?index, _, _, ?inmethod).
+
+UnrelatedInvokes(?invocation):-
+    _UnrelatedInvokes(?inmethod,?index),
+    _SpecialMethodInvocation(?invocation, ?index, _, _, ?inmethod).
+
+UnrelatedInvokes(?invocation):-
+    _UnrelatedInvokes(?inmethod,?index),
+    _StaticMethodInvocation(?invocation, ?index, _, ?inmethod).
+
+OutMethodsA(?inmethod, ?category) :-
+    isMethod(?inmethod),
+    _CollectionOut(?inmethod),
+    ?category = "Col-Value".
+
+OutMethodsA(?inmethod, ?category) :-
+    isMethod(?inmethod),
+    _MapValueOut(?inmethod),
+    ?category = "Map-Value".
+
+OutMethodsA(?inmethod, ?category) :-
+    isMethod(?inmethod),
+    _MapKeyOut(?inmethod),
+    ?category = "Map-Key".
+
+ToArrayMethods(?method) :-
+    isMethod(?method),
+    _ToArrayMethods(?method).
+
+MethodParameterConstraint(?method, ?index, ?declaringClass, ?category) :-
+    _InMethod(?category, ?method, ?index),
+    ?category = "Map-Key",
+    Method_DeclaringType(?method, ?declaringClass),
+    isMethod(?method).
+
+MethodParameterConstraint(?method, ?index, ?cons, ?category) :-
+    _InWithCons(?category, ?method, ?index, ?cons),
+    isClassType(?cons),
+    ?category = "Map-Key",
+    isMethod(?method).
+
+MethodParameterConstraint(?method, ?index, ?declaringClass, ?category) :-
+    _InMethod(?category, ?method, ?index),
+    ?category = "Map-Value",
+    Method_DeclaringType(?method, ?declaringClass),
+    isMethod(?method).
+
+MethodParameterConstraint(?method, ?index, ?cons, ?category) :-
+    _InWithCons(?category, ?method, ?index, ?cons),
+    isClassType(?cons),
+    ?category = "Map-Value",
+    isMethod(?method).  
+
+MethodParameterConstraint(?method, ?index, ?declaringClass, ?category) :-
+    _InMethod(?category, ?method, ?index),
+    ?category = "Col-Value",
+    Method_DeclaringType(?method, ?declaringClass).
+
+MethodParameterConstraint(?method, ?index, ?cons, ?category) :-
+    _InWithCons(?category, ?method, ?index, ?cons),
+    isClassType(?cons),
+    ?category = "Col-Value",
+    isMethod(?method).
+
+ArrayInitializer(?constructor, ?index0, ?index1):-
+    _ArrayInitializer(?constructor,?index0,?index1),
+    isMethod(?constructor).
+
+OutMethodsB("MAP_ENTRY", "getValue(", "Map-Value").
+OutMethodsB("MAP_ENTRY", "getKey(", "Map-Key").
+OutMethodsB("MAP_KEY_ITR", "next()", "Map-Key").
+OutMethodsB("MAP_KEY_ITR", "nextElement()", "Map-Key").
+OutMethodsB("MAP_VALUE_ITR", "next()", "Map-Value").
+OutMethodsB("MAP_VALUE_ITR", "nextElement()", "Map-Value").
+OutMethodsB("COL_ITR", "next()", "Col-Value").
+OutMethodsB("COL_ITR", "nextElement()", "Col-Value").
+OutMethodsB("COL_ITR", "previous()", "Col-Value").
+
+HostPassers("COL_0", "iterator(", "COL_ITR").
+HostPassers("COL_0", "Iterator(", "COL_ITR").
+HostPassers("MAP_0", "entrySet()", "MAP_ENTRY_SET").
+HostPassers("MAP_0", "keySet()", "MAP_KEY_SET").
+HostPassers("MAP_0", "KeySet()", "MAP_KEY_SET").
+HostPassers("MAP_0", "values()", "MAP_VALUES").
+HostPassers("MAP_0", "Entry", "MAP_ENTRY").
+HostPassers("MAP_0", "keys()", "MAP_KEY_ITR").
+HostPassers("MAP_ENTRY_SET", "iterator()", "MAP_ENTRY_ITR").
+HostPassers("MAP_VALUES", "iterator()", "MAP_VALUE_ITR").
+HostPassers("MAP_KEY_SET", "iterator()", "MAP_KEY_ITR").
+HostPassers("MAP_ENTRY_ITR", "next", "MAP_ENTRY").
+
+
+.decl HostClassInnerClassPrefix(?innerClassPrefix:symbol) 
+HostClassInnerClassPrefix(?innerClassPrefix):-
+    isHostClass(?class),
+    ?innerClassPrefix = cat(?class, "$").
+HostClassInnerClassPrefix("java.util.Collections$").
+
+HostClassInnerClass(?inner) :-
+    HostClassInnerClassPrefix(?innerClassPrefix),
+    isClassType(?inner),
+    substr(?inner, 0, strlen(?innerClassPrefix)) = ?innerClassPrefix.
+
+
+EntrySetClass(?entrySetClass, ?allocClass):-
+    _EntrySetClass(?entrySetClass, ?allocClass),
+    isClassType(?entrySetClass),
+    isClassType(?allocClass).
+
+IteratorClass(?class):-
+    _IteratorClass(?class),
+    isClassType(?class).

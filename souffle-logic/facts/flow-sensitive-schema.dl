@@ -24,6 +24,7 @@
 .decl isNullType(?t:ReferenceType)
 .decl isArrayType(?t:ArrayType)
 .decl isClassType(?t:ClassType)
+
 .decl isInterfaceType(?t:InterfaceType)
 
 // Inheritance and Subtyping
@@ -72,6 +73,7 @@
 
 .type Method = symbol
 .decl isMethod(?m:Method)
+
 
 .decl Method_DeclaringType(?method:Method, ?declaringType:ReferenceType)
 .decl Method_ReturnType(?method:Method, ?returnType:Type)
@@ -135,8 +137,10 @@
 .type MethodTypeConstant   = HeapAllocation
 
 .decl isHeapAllocation(?h:HeapAllocation)
+
 .decl isNormalHeap(?h:NormalHeap)
 .decl isStringConstant(?h:StringConstant)
+
 .decl isClassHeap(?h:ClassHeap)
 .decl isMethodHandleConstant(?h:MethodHandleConstant)
 .decl isMethodTypeConstant(?h:MethodTypeConstant)
@@ -448,6 +452,8 @@
 
 // Special Method Invocation
 .decl SpecialMethodInvocation_Base(?invocation:SpecialMethodInvocation_Insn, ?base:Var)
+
+
 .decl SpecialMethodInvocation_SimpleName(?invocation:MethodInvocation, ?simplename:symbol)
 .decl SpecialMethodInvocation_Descriptor(?invocation:MethodInvocation, ?descriptor:MethodDescriptor)
 

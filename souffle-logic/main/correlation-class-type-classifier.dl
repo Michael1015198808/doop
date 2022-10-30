@@ -1,0 +1,54 @@
+.decl ContainerType(?type:Type, ?containerType:symbol)
+// .output ContainerType(IO="file",filename="ContainerType.csv",delimiter="\t")
+
+.decl isEnumerationClass(?class:ClassType)
+// .output isEnumerationClass(IO="file",filename="isEnumerationClass.csv",delimiter="\t")
+
+.decl isMapEntryClass(?class:ClassType)
+// .output isMapEntryClass(IO="file",filename="isMapEntryClass.csv",delimiter="\t")
+
+.decl isHashtableClass(?class:ClassType)
+// .output isHashtableClass(IO="file",filename="isHashtableClass.csv",delimiter="\t")
+
+.decl isVectorClass(?class:ClassType)
+// .output isVectorClass(IO="file",filename="isVectorClass.csv",delimiter="\t")
+
+ContainerType(?type, ?containerType):-
+    isClassType(?type),
+    basic.SubtypeOf(?type, ?superclass),
+    ?superclass = "java.util.Map",
+    ?containerType = "MAP".
+
+ContainerType(?type, ?containerType):-
+    isClassType(?type),
+    basic.SubtypeOf(?type, ?superclass),
+    ?superclass = "java.util.Collection",
+    ?containerType = "COLLECTION".
+
+isEnumerationClass(?class) :-
+    isClassType(?class),
+    basic.SubtypeOf(?class, ?superclass),
+    ?superclass = "java.util.Enumeration".
+
+isMapEntryClass(?class) :-
+    isClassType(?class),
+    basic.SubtypeOf(?class, ?superclass),
+    ?superclass = "java.util.Map$Entry".
+
+isHashtableClass(?class) :-
+    isClassType(?class),
+    basic.SubtypeOf(?class, ?superclass),
+    ?superclass = "java.util.Hashtable".
+
+isVectorClass(?class) :-
+    isClassType(?class),
+    basic.SubtypeOf(?class, ?superclass),
+    ?superclass = "java.util.Vector".
+
+
+
+
+
+
+
+

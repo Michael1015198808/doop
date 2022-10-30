@@ -225,6 +225,16 @@ class FactWriter extends JavaFactWriter {
         writeAssignLocal(ii.insn, ii.index, _rep.thisVar(methodId), _rep.local(methodId, to), methodId);
     }
 
+    void writeLocalThis(InstrInfo ii , Local localThis){
+        String methodId = ii.methodId;
+        _db.add(THISLOCAL, methodId, _rep.local(methodId,localThis));
+    }
+
+    void writeLocalParam(InstrInfo ii, Local localParam, ParameterRef FormalParam){
+        String methodId = ii.methodId;
+        _db.add(PARAMLOCAL, methodId, _rep.local(methodId,localParam), _rep.param(methodId,FormalParam.getIndex()));
+    }
+
     void writeAssignLocal(InstrInfo ii, Local to, ParameterRef ref) {
         String methodId = ii.methodId;
         writeAssignLocal(ii.insn, ii.index, _rep.param(methodId, ref.getIndex()), _rep.local(methodId, to), methodId);

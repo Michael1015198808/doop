@@ -1,0 +1,263 @@
+//IDB for set-pattern
+.decl IgnoredInstanceFieldStore(?from:Var, ?base:Var, ?signature:Field, ?inmethod:Method)
+.output IgnoredInstanceFieldStore(IO="file",filename="IgnoredInstanceFieldStore.csv",delimiter="\t")
+
+.decl AbstractStoreCandidate(?from:Var, ?base:Var, ?sig:Field, ?inmethod:Method, ?fromAllowedType:Type, ?baseAllowedType:Type)
+.output AbstractStoreCandidate(IO="file",filename="AbstractStoreCandidate.csv",delimiter="\t")
+
+.decl AbstractInstanceStore(?from:Var, ?base:Var, ?sig:Field, ?inmethod:Method, ?fromAllowedType:Type, ?baseAllowedType:Type)
+.output AbstractInstanceStore(IO="file",filename="AbstractInstanceStore.csv",delimiter="\t")
+
+.decl AbstractInstanceFieldPointsTo(?htcx:configuration.HContext, ?value:Value, ?sig:Field, ?basehctx:configuration.HContext, ?basevalue:Value)
+.output AbstractInstanceFieldPointsTo(IO="file",filename="AbstractInstanceFieldPointsTo.csv",delimiter="\t")
+
+// instance field store need to be ignored (without passing pts from var ?from to baseObj's field)
+IgnoredInstanceFieldStore(?from, ?base, ?sig, ?inmethod) :- 
+    StoreInstanceField(?from, ?base, ?sig, ?inmethod),
+    MethodFormalParamAndThis(_, ?inmethod, ?base),
+    MethodFormalParamAndThis(_, ?inmethod, ?from).
+
+//TODO: handle 'this' more precisely 
+AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?baseAllowedType) :-
+    IgnoredInstanceFieldStore(?from, ?base, ?sig, ?callee),
+    Var_Type(?from, ?fromAllowedType),
+    Var_Type(?base, ?baseAllowedType),
+    CallGraphEdge(_, ?invocation, _, ?callee),
+    Instruction_Method(?invocation, ?caller),
+    MethodFormalParamAndThis(?baseindex, ?callee, ?base),
+    InvocationActualParamAndBase(?baseindex, ?invocation, ?newbase),
+    MethodFormalParamAndThis(?fromindex, ?callee, ?from),
+    InvocationActualParamAndBase(?fromindex, ?invocation, ?newfrom).
+    
+AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?baseAllowedType) :-
+    AbstractStoreCandidate(?from, ?base, ?sig, ?callee, ?fromAllowedType, ?baseAllowedType),
+    CallGraphEdge(_, ?invocation, _, ?callee),
+    Instruction_Method(?invocation, ?caller),
+    MethodFormalParamAndThis(?baseindex, ?callee, ?base),
+    InvocationActualParamAndBase(?baseindex, ?invocation, ?newbase),
+    MethodFormalParamAndThis(?fromindex, ?callee, ?from),
+    InvocationActualParamAndBase(?fromindex, ?invocation, ?newfrom).
+
+AbstractInstanceStore(?from, ?base, ?sig, ?inmethod, ?fromAllowedType, ?baseAllowedType) :-
+    AbstractStoreCandidate(?from, ?base, ?sig, ?inmethod, ?fromAllowedType, ?baseAllowedType),
+    !MethodFormalParamAndThis(_, ?inmethod, ?from).
+AbstractInstanceStore(?from, ?base, ?sig, ?inmethod, ?fromAllowedType, ?baseAllowedType) :-
+    AbstractStoreCandidate(?from, ?base, ?sig, ?inmethod, ?fromAllowedType, ?baseAllowedType),
+    !MethodFormalParamAndThis(_, ?inmethod, ?base).
+
+//double check : allowed type check and store check.
+AbstractInstanceFieldPointsTo(?hctx, ?value, ?sig, ?basehctx, ?basevalue) :-
+    AbstractInstanceStore(?from, ?base, ?sig, _, ?fromAllowedType, ?baseAllowedType),
+    VarPointsTo(?basehctx, ?basevalue, _, ?base),
+    VarPointsTo(?hctx, ?value, _, ?from),
+    //check base value and value for instance store as original rules
+    NotSpecialObject(?value),
+    !Value_Null(?basevalue),
+    // check actual param -> formal param pts passing as original rules
+    Value_Type(?value, ?valuetype),
+    basic.SubtypeOf(?valuetype, ?fromAllowedType),
+    Value_Type(?basevalue, ?basevaluetype),
+    basic.SubtypeOf(?basevaluetype, ?baseAllowedType).
+
+
+HostOfInstanceField(?host, ?basevalue, ?sig):-
+  AbstractInstanceStore(?from, ?base, ?sig, _, _, _),
+  VarPointsTo(_, ?basevalue, _, ?base),
+  HostOfVar(?host, ?from).
+ContainerKindOfInstanceField(?basevalue, ?sig, ?kind) :-
+  AbstractInstanceStore(?from, ?base, ?sig, _, _, _),
+  VarPointsTo(_, ?basevalue, _, ?base),
+  ContainerKindOfVar(?from, ?kind).  
+
+InstanceFieldPointsTo(?hctx, ?value, ?sig, ?basehctx, ?basevalue) :-
+    AbstractInstanceFieldPointsTo(?hctx, ?value, ?sig, ?basehctx, ?basevalue).
+
+
+//IDB for get-pattern
+// .decl BannedReturnVar(?var:Var)
+.decl GetStmt(?var:Var, ?base:Var, ?sig:Field, ?inmethod:Method) //getstmt is a logic extension of BannedReturnVar
+.output GetStmt(IO="file",filename="GetStmt.csv",delimiter="\t")
+
+// .decl MethodWithInvocation(?method:Method) //method with invocation instruction
+
+// .decl NotBannedReturnVarFirstRule(?var:Var)
+// .output NotBannedReturnVarFirstRule(IO="file",filename="NotBannedReturnVarFirstRule.csv",delimiter="\t")
+
+// .decl NotBannedReturnVarSecondRule(?var:Var)
+// .output NotBannedReturnVarSecondRule(IO="file",filename="NotBannedReturnVarSecondRule.csv",delimiter="\t")
+
+// .decl ParamLoadLhsInMethod(?var:Var, ?method:Method)
+
+// .decl NotBannedReturnVar(?var:Var)
+// .output NotBannedReturnVar(IO="file",filename="NotBannedReturnVar.csv",delimiter="\t")
+
+.decl AbstractInstanceLoad(?to:Var, ?base:Var, ?sig:Field, ?inmethod:Method, ?toAllowedType:Type, ?baseAllowedType:Type)
+.output AbstractInstanceLoad(IO="file",filename="AbstractInstanceLoad.csv",delimiter="\t")
+
+.decl GetStmtReturnVarPointsTo(?htcx:configuration.HContext, ?value:Value, ?ctx:configuration.Context, ?resutn:Var)
+.output GetStmtReturnVarPointsTo(IO="file",filename="GetStmtReturnVarPointsTo.csv",delimiter="\t")
+ 
+.decl InvocationActualParamAndBaseInMethod(?baseOrActualParam:Var, ?inmethod:Method)
+
+.decl ReturnVarWithoutSideEffect(?var:Var, ?method:Method)
+
+InvocationActualParamAndBaseInMethod(?var, ?inmethod):-
+    InvocationActualParamAndBase(_, ?invocation, ?var),
+    Instruction_Method(?invocation, ?inmethod).
+
+ReturnVarWithoutSideEffect(?to, ?method) :-
+    ReturnVar(?to, ?method),
+    !AssignHeapAllocation(?to, _, ?method),
+    !AssignCast(_, ?to, _, ?method),
+    !AssignLocal(?to, _, ?method),
+    !StoreInstanceField(?to, _, _, ?method),
+    !StoreStaticField(?to, _,?method),
+    !StoreArrayIndex(?to, _, ?method),
+    !InvocationActualParamAndBaseInMethod(?to, ?method).
+
+//original BanendReturnVar
+GetStmt(?to, ?base, ?sig, ?method):-
+    LoadInstanceField(?base, ?sig, ?to, ?method),
+    MethodFormalParamAndThis(_, ?method, ?base),
+    //return var not as RValue or base/actual param
+    ReturnVarWithoutSideEffect(?to, ?method).
+
+//counterpart for original BannedReturnVar
+// NotBannedReturnVarFirstRule(?ret) :-
+//     ReturnVar(?ret, ?method),
+//     !LoadInstanceField(_, _, ?ret, ?method).
+
+// ParamLoadLhsInMethod(?ret, ?method) :-
+//     LoadInstanceField(?base, _, ?ret, ?method),
+//     MethodFormalParamAndThis(_, ?method, ?base).
+
+// NotBannedReturnVarFirstRule(?ret) :-
+//     ReturnVar(?ret, ?method),
+//     !ParamLoadLhsInMethod(?ret, ?method).
+
+//derived BannedReturnVar
+GetStmt(?result, ?callerBase, ?sig, ?caller) :-
+// callee's return is banned
+    CallGraphEdge(_, ?invocation, _, ?callee),
+    GetStmt(?calleeRet, ?calleeBase, ?sig, ?callee),
+    ReturnVar(?calleeRet, ?callee),
+// callsite's base is caller's formal param
+    Instruction_Method(?invocation, ?caller),
+    InvocationActualParamAndBase(-1, ?invocation, ?invoBase),
+    MethodFormalParamAndThis(_, ?caller, ?invoBase),
+// callsite's lhs is caller's return
+    AssignReturnValue(?invocation,?result),
+    // ReturnVar(?result, ?caller),
+    ReturnVarWithoutSideEffect(?result, ?caller),
+// map index of callee's getstmt base to callsite
+    MethodFormalParamAndThis(index, ?callee, ?calleeBase),
+    InvocationActualParamAndBase(index, ?invocation, ?callerBase).
+
+//counterpart for derived BannedReturnVar
+//method without callsites, all return vars is not banned
+
+// NotBannedReturnVarSecondRule(?ret) :-
+//     !MethodWithInvocation(?method),
+//     ReturnVar(?ret, ?method).
+
+// MethodWithInvocation(?method) :-
+//     isMethodInvocation(?invocation),
+//     Instruction_Method(?invocation, ?method).
+
+//method with callsites, and if one return var is not any callsite's lhs, then it is not banned
+// NotBannedReturnVarSecondRule(?ret) :-
+//     isMethodInvocation(?invocation),
+//     !AssignReturnValue(?invocation,?ret),
+//     Instruction_Method(?invocation, ?caller),
+//     ReturnVar(?ret, ?caller).
+
+//method with callsites, and one return var is callsite's lhs, if the callsite has no base, then it is not banned.
+// NotBannedReturnVarSecondRule(?ret) :-
+//     isMethodInvocation(?invocation),
+//     AssignReturnValue(?invocation,?ret),
+//     Instruction_Method(?invocation, ?caller),
+//     ReturnVar(?ret, ?caller),
+//     !InvocationActualParamAndBase(-1, ?invocation, _).
+
+//method with callsites, and one return var is callsite's lhs, and callsite has base, but base is not formal param, then it is not banned.
+// NotBannedReturnVarSecondRule(?ret) :-
+//     isMethodInvocation(?invocation),
+//     AssignReturnValue(?invocation,?ret),
+//     Instruction_Method(?invocation, ?caller),
+//     ReturnVar(?ret, ?caller),
+//     InvocationActualParamAndBase(-1, ?invocation, ?invoBase),
+//     !MethodFormalParamAndThis(_, ?caller, ?invoBase).
+
+// method with virtual callsites and base ,but no callee can be resolved 
+// NotBannedReturnVarSecondRule(?ret) :-
+//     isVirtualMethodInvocation_Insn(?invocation),
+//     AssignReturnValue(?invocation,?ret),
+//     Instruction_Method(?invocation, ?caller),
+//     ReturnVar(?ret, ?caller),
+//     InvocationActualParamAndBase(-1, ?invocation, ?invoBase),
+//     MethodFormalParamAndThis(_, ?caller, ?invoBase),
+//     VarPointsTo(_, ?value, _, ?invoBase),
+//     Value_Type(?value, ?valuetype),
+//     !basic.ResolveInvocation(?valuetype, ?invocation, _).
+
+//what about method with callsites(return var) and base(formal param), and base is always null? [may have soundness problem]
+//we will see
+
+//(have load and load is param and lhs is return) or (have callsite and callee is banned) <=> should be banned
+// not(have load and load is param and lhs is return) and not(have callsite and callee is banned) <=> should not be banned
+// (not have load or have load but load is not param or lhs is not return) and (not or not...)    <=>
+// (fitstrule) and (secondrule) <=> should not be banned
+// NotBannedReturnVar(?var) :-
+//     NotBannedReturnVarSecondRule(?var),
+//     NotBannedReturnVarFirstRule(?var).
+
+//method with callsite -> callee, but callee has at least one return is not banned
+// NotBannedReturnVarSecondRule(?ret) :-
+//     CallGraphEdge(_, ?invocation, _, ?callee),
+//     NotBannedReturnVar(?calleeRet),
+//     ReturnVar(?calleeRet,?callee),
+//     Instruction_Method(?invocation, ?caller),
+//     ReturnVar(?ret, ?caller).
+
+//when callee has banned return var(getstmt), the caller need to create absract load field.
+AbstractInstanceLoad(?to, ?callerBase, ?sig, ?caller, ?toAllowedType, ?baseAllowedType) :-
+    //callee has banned return var
+    CallGraphEdge(_, ?invocation, _, ?callee),
+    GetStmt(_, ?calleeBase, ?sig, ?callee),
+    //map base at callsite
+    Instruction_Method(?invocation, ?caller),
+    AssignReturnValue(?invocation,?to),
+    MethodFormalParamAndThis(index, ?callee, ?calleeBase),
+    InvocationActualParamAndBase(index, ?invocation, ?callerBase),
+    //type allowed.
+    Var_Type(?to, ?toAllowedType),
+    Var_Type(?callerBase, ?baseAllowedType),
+    !RelatedCollectionOutMethod(?callee).
+
+GetStmtReturnVarPointsTo(?hctx, ?value, ?ctx, ?to):-
+    AbstractInstanceLoad(?to, ?base, ?sig, _, ?toAllowedType, ?baseAllowedType),
+    VarPointsTo(?basehctx, ?basevalue, _, ?base),
+    InstanceFieldPointsTo(?hctx, ?value, ?sig, ?basehctx, ?basevalue),
+    //check base value and value for instance store as original rules
+    NotSpecialObject(?value),
+    !Value_Null(?basevalue),
+    // check instance field -> result var pts passing as original rules
+    Value_Type(?value, ?valuetype),
+    basic.SubtypeOf(?valuetype, ?toAllowedType),
+    Value_Type(?basevalue, ?basevaluetype),
+    basic.SubtypeOf(?basevaluetype, ?baseAllowedType),
+    ?ctx = "<<immutable-context>>".
+
+HostOfVar(?host, ?to):-
+  AbstractInstanceLoad(?to, ?base, ?sig, _, _, _),
+  VarPointsTo(_, ?basevalue, _, ?base),
+  HostOfInstanceField(?host, ?basevalue, ?sig).
+ContainerKindOfVar(?to, ?kind) :-
+  AbstractInstanceLoad(?to, ?base, ?sig, _, _, _),
+  VarPointsTo(_, ?basevalue, _, ?base),
+  ContainerKindOfInstanceField(?basevalue, ?sig, ?kind).
+
+
+// VarPointsTo(?htcx, ?value, ?ctx, ?var):-
+//     AbstractVarPointsTo(?htcx, ?value, ?ctx, ?var).
+

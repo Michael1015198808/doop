@@ -153,6 +153,8 @@ Tamiflex_ReifiedMethodArray(?type, cat(cat("<(Tamiflex) ", ?type), "/Method[]>")
  */
 .decl TamiflexCallGraphEdge(?callerCtx:configuration.Context, ?invocation:MethodInvocation,
                             ?calleeCtx:configuration.Context, ?callee:Method)
+.output TamiflexCallGraphEdge(IO="file",filename="TamiflexCallGraphEdge.csv",delimiter="\t")
+
 
 ReachableContext(?calleeCtx, ?callee) :-
   TamiflexCallGraphEdge(_, _, ?calleeCtx, ?callee).
@@ -237,6 +239,12 @@ OptInterproceduralAssign(?callerCtx, ?local, ?calleeCtx, ?return) :-
   Tamiflex_Invoke(?callerCtx, ?invocation, ?callee),
   AssignReturnValue(?invocation, ?local),
   ReturnVar(?return, ?callee),
+#ifdef IDMETHOD
+  !SpecialHandledReturnVar(?return),
+#endif //IDMETHOD
+#ifdef LOADPART
+  !IgnoredReturnVarLoad(?return),
+#endif //LOADPART
   isImmutableContext(?calleeCtx).
 
 /**
@@ -283,3 +291,13 @@ VarPointsTo(?hctx, ?value, ?ctx, ?return) :-
   ReachableContext(?ctx, ?inmethod),
   isImmutableHContext(?hctx),
   AssignReturnValue(?invocation, ?return).
+
+#ifdef CORRELATION
+.decl Tamiflex_Invoke_Simple(?invocation:MethodInvocation, ?method:Method)
+Tamiflex_Invoke_Simple(?invocation, ?method) :-
+  ?sig = "<java.lang.reflect.Method: java.lang.Object invoke(java.lang.Object,java.lang.Object[])>",
+  isMethod(?sig),
+  VirtualMethodInvocation(?invocation, ?sig, _),
+  Tamiflex_ReflectionMap(?method, ?invocation),
+  isMethod(?method).
+#endif //CORRELATION

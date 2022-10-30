@@ -38,6 +38,14 @@
 #include "zipper-pre-analysis.dl"
 #endif // X_ZIPPER_PRE_ANALYSIS
 
+#ifdef CORRELATION
+#include "correlation-declarations.dl"
+#endif //CORRELATION
+
+#ifdef COLLECTION3OBJ
+#include "collection-methods.dl"
+#endif //COLLECTION3OBJ
+
   .decl FakeInvocation_RegisterFinalize0(?heap:HeapAllocation, ?invo:MethodInvocation)
 
   .decl FakeInvocation_RegisterFinalize(?value:Value, ?invo:MethodInvocation)

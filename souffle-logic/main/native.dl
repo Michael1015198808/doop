@@ -219,11 +219,13 @@ LoadArrayIndex(?base, ?to, ?inmethod) :-
  *
  **********************************************************************************/
 
-#if defined(JRE3) || defined (JRE4) || defined(JRE5) || defined(JRE6)
+#if defined(JRE13) || defined (JRE14) || defined(JRE15) || defined(JRE16)
 SimulateNativeAllocation(
   "<java.io.FileSystem: java.io.FileSystem getFileSystem()>",
   "java.io.FileSystem.getFileSystem/new java.io.UnixFileSystem",
   "<java.io.UnixFileSystem: void <init>()>").
+//HeapAllocation_Type("java.io.FileSystem.getFileSystem/new java.io.UnixFileSystem", "java.io.UnixFileSystem").
+//isHeapAllocation("java.io.FileSystem.getFileSystem/new java.io.UnixFileSystem").
 #endif // JRE < 1.7
 
 #ifdef ANDROID
@@ -311,6 +313,9 @@ SimulateNativeAllocation(
   "<sun.misc.Perf: java.nio.ByteBuffer createLong(java.lang.String,int,int,long)>",
   "<sun.misc.Perf: java.nio.ByteBuffer createLong(java.lang.String,int,int,long)>/new java.nio.DirectByteBuffer/0",
   "<java.nio.DirectByteBuffer: void <init>()>").
+
+//HeapAllocation_Type("<sun.misc.Perf: java.nio.ByteBuffer createLong(java.lang.String,int,int,long)>/new java.nio.DirectByteBuffer/0", "java.nio.DirectByteBuffer").
+//isHeapAllocation("<sun.misc.Perf: java.nio.ByteBuffer createLong(java.lang.String,int,int,long)>/new java.nio.DirectByteBuffer/0").
 
 #endif // ANDROID
 
@@ -504,3 +509,4 @@ VarPointsTo(?immHCtx, ?mockId, ?ctx, ?this) :-
 #endif // DISABLE_POINTS_TO
 
 #endif // SCAN_NATIVE_CODE
+
