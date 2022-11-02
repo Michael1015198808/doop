@@ -94,9 +94,17 @@
 .decl IteratorClass(?class:Type)
 // .output IteratorClass(IO="file",filename="IteratorClass.csv",delimiter="\t")
 
-isHostClass(?class) :-
-    _HostClass(?class),
-    isClassType(?class).
+.decl _ExcludeClass(?class:Type)
+.input _ExcludeClass(IO="file", filename="ExcludeClass.txt", delimiter="\t")
+
+//isHostClass(?class) :-
+//    _HostClass(?class),
+//    isClassType(?class).
+
+isHostClass(?class) :-  
+    ContainerType(?class, _),
+    ! _ExcludeClass(?class).    
+
     
 CorrelationExtender(?inmethod, ?index0, ?index1) :-
     _CorrelationExtender(?inmethod),

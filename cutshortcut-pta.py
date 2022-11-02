@@ -2,6 +2,7 @@
 import os
 import sys
 
+DACAPOAPP = ['bloat', 'xalan', 'hsqldb', 'eclipse', 'jython']
 ALLAPP = ['bloat', 'xalan', 'hsqldb', 'eclipse', 'jython',
          'findbugs', 'soot', 'gruntspud', 'columba', 'jedit', 'freecol', 'briss']
 ANALYSIS = ['context-insensitive', '2-object-sensitive+heap', '2-type-sensitive+heap', 'zipper-e', 'cut-shortcut', 'collection-3obj']
@@ -13,13 +14,7 @@ APPINPUT = {
     'columba' : 'benchmarks/columba/1.4/columba.jar',
     'jedit' : 'benchmarks/jedit/3.0/jedit.jar',
     'freecol' : 'benchmarks/freecol/0.10.3/FreeCol.jar',
-    'briss' : 'benchmarks/briss/0.9/briss-0.9.jar',
-    'hsqldb' : 'benchmarks/dacapo-2006/hsqldb.jar',
-    'eclipse' : 'benchmarks/dacapo-2006/eclipse.jar',
-    'xalan' : 'benchmarks/dacapo-2006/xalan.jar',
-    'bloat' : 'benchmarks/dacapo-2006/bloat.jar',
-    'jython' : 'benchmarks/dacapo-2006/jython.jar'
-
+    'briss' : 'benchmarks/briss/0.9/briss-0.9.jar'
 }
 
 APPLIB = {
@@ -29,11 +24,6 @@ APPLIB = {
     'jedit' : 'benchmarks/jedit/3.0/lib',
     'freecol' : 'benchmarks/freecol/0.10.3/jars',
     'briss' : 'benchmarks/briss/0.9',
-    'hsqldb' : 'benchmarks/dacapo-2006/hsqldb-deps.jar',
-    'eclipse' : 'benchmarks/dacapo-2006/eclipse-deps.jar',
-    'xalan' : 'benchmarks/dacapo-2006/xalan-deps.jar',
-    'bloat' : 'benchmarks/dacapo-2006/bloat-deps.jar',
-    'jython' : 'benchmarks/dacapo-2006/jython-deps.jar'
 }
 
 APPTAMIFLEX = {
@@ -44,11 +34,6 @@ APPTAMIFLEX = {
     'jedit' : 'benchmarks/jedit/3.0/refl.log',
     'freecol' : 'benchmarks/freecol/0.10.3/refl.log',
     'briss' : 'benchmarks/briss/0.9/refl.log',
-    'hsqldb' : 'benchmarks/dacapo-2006/hsqldb-refl.log',
-    'eclipse' : 'benchmarks/dacapo-2006/eclipse-refl.log',
-    'xalan' : 'benchmarks/dacapo-2006/xalan-refl.log',
-    'bloat' : 'benchmarks/dacapo-2006/bloat-refl.log',
-    'jython' : 'benchmarks/dacapo-2006/jython-refl.log'
 }
 
 APPMAIN = {
@@ -59,11 +44,6 @@ APPMAIN = {
     'jedit' : 'org.gjt.sp.jedit.jEdit',
     'freecol' : 'net.sf.freecol.FreeCol',
     'briss' : 'at.laborg.briss.Briss',
-    'hsqldb' : 'Harness',
-    'eclipse' : 'Harness',
-    'xalan' : 'Harness',
-    'bloat' : 'Harness',
-    'jython' : 'Harness'
 }
 
 DOOPHOME = os.path.dirname(os.path.realpath(__file__))
@@ -83,12 +63,16 @@ def runDoop(app, analyse):
         cmd = cmd + 'python bin/zippere.py -a 2-object-sensitive+heap'
     else :    
         cmd = cmd +"./doop -a "+analyse
-    cmd = cmd + ' -i '+APPINPUT[app]
-    if APPLIB.has_key(app):
-        cmd = cmd + ' -l '+APPLIB[app]
+    if app in DACAPOAPP:
+        cmd = cmd + ' -i benchmarks/dacapo-2006/'+app+'.jar'
+        cmd = cmd + ' --dacapo'
+    else:
+        cmd = cmd + ' -i '+APPINPUT[app]
+        if APPLIB.has_key(app):
+            cmd = cmd + ' -l '+APPLIB[app]
+        cmd = cmd + ' --tamiflex '+APPTAMIFLEX[app]
+        cmd = cmd + ' --main '+APPMAIN[app]
     cmd = cmd + ' --platform java_6'
-    cmd = cmd + ' --tamiflex '+APPTAMIFLEX[app]
-    cmd = cmd + ' --main '+APPMAIN[app]
     cmd = cmd + ' --cs-library'
     cmd = cmd + ' --no-merge-library-objects'
     cmd = cmd + ' --Xno-ssa'

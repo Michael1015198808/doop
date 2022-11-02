@@ -221,9 +221,6 @@ executeInArgumentToHost(?arg, ?obj, "Col-Value"):-
 ExtendCorrelation(?arg1, ?arg2):-
     CorrelationExtenderNeedProcessing(?invocation, ?callee),
     CorrelationExtender(?callee, ?index0, ?index1),
-    InvocationActualParamAndBase(-1, ?invocation, ?base),
-    Instruction_Method(?invocation, ?caller),
-    !MethodFormalParamAndThisIncludingLocal(-1, ?caller, ?base),
     InvocationActualParamAndBase(?index0, ?invocation, ?arg1),
     InvocationActualParamAndBase(?index1, ?invocation, ?arg2).
 
@@ -589,8 +586,6 @@ ExtendCorrelation(?base, ?arg2):-
     CorrelationExtender(?callee, -1, ?index1),
     ?index1 != -1,
     TamiflexInvocationBase(?invocation, ?base),
-    Instruction_Method(?invocation, ?caller),
-    !MethodFormalParamAndThisIncludingLocal(-1, ?caller, ?base),
     TamiflexInvocationActualParam(?invocation, ?arg2).
 
 ExtendCorrelation(?arg1, ?base):-
@@ -598,8 +593,6 @@ ExtendCorrelation(?arg1, ?base):-
     CorrelationExtender(?callee, ?index0, -1),
     ?index0 != -1,
     TamiflexInvocationBase(?invocation, ?base),
-    Instruction_Method(?invocation, ?caller),
-    !MethodFormalParamAndThisIncludingLocal(-1, ?caller, ?base),
     TamiflexInvocationActualParam(?invocation, ?arg1).
 
 ExtendCorrelation(?arg1, ?arg1):-
@@ -607,9 +600,6 @@ ExtendCorrelation(?arg1, ?arg1):-
     CorrelationExtender(?callee, ?index0, ?index1),
     ?index0 != -1,
     ?index1 != -1,
-    TamiflexInvocationBase(?invocation, ?base),
-    Instruction_Method(?invocation, ?caller),
-    !MethodFormalParamAndThisIncludingLocal(-1, ?caller, ?base),
     TamiflexInvocationActualParam(?invocation, ?arg1).
 
 //in argument to host
