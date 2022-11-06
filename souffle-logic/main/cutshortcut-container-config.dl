@@ -94,17 +94,25 @@
 .decl IteratorClass(?class:Type)
 // .output IteratorClass(IO="file",filename="IteratorClass.csv",delimiter="\t")
 
-.decl _ExcludeClass(?class:Type)
+.decl _ExcludeClass(?keySetclass:Type, ?valueSetClass:Type)
 .input _ExcludeClass(IO="file", filename="ExcludeClass.txt", delimiter="\t")
 
-//isHostClass(?class) :-
-//    _HostClass(?class),
-//    isClassType(?class).
+.decl AllExcludeClass(?class:Type)
 
-isHostClass(?class) :-  
+.decl KeySetOrValueSet(?keySetclass:Type, ?valueSetClass:Type)
+
+KeySetOrValueSet(?keysetType, ?valueSetType):-
+    _ExcludeClass(?keysetType, ?valueSetType),
+    ?valueSetType != "NONE".
+
+isHostClass(?class):-  
     ContainerType(?class, _),
-    ! _ExcludeClass(?class).    
+    ! AllExcludeClass(?class).
 
+AllExcludeClass(?class):-
+    _ExcludeClass(?class,_).
+AllExcludeClass(?class):-
+    _ExcludeClass(_,?class).
     
 CorrelationExtender(?inmethod, ?index0, ?index1) :-
     _CorrelationExtender(?inmethod),
@@ -206,28 +214,29 @@ ArrayInitializer(?constructor, ?index0, ?index1):-
     _ArrayInitializer(?constructor,?index0,?index1),
     isMethod(?constructor).
 
-OutMethodsB("MAP_ENTRY", "getValue(", "Map-Value").
-OutMethodsB("MAP_ENTRY", "getKey(", "Map-Key").
-OutMethodsB("MAP_KEY_ITR", "next()", "Map-Key").
-OutMethodsB("MAP_KEY_ITR", "nextElement()", "Map-Key").
-OutMethodsB("MAP_VALUE_ITR", "next()", "Map-Value").
-OutMethodsB("MAP_VALUE_ITR", "nextElement()", "Map-Value").
-OutMethodsB("COL_ITR", "next()", "Col-Value").
-OutMethodsB("COL_ITR", "nextElement()", "Col-Value").
-OutMethodsB("COL_ITR", "previous()", "Col-Value").
+OutMethodsB("MAP_ENTRY", "getValue", "Map-Value").
+OutMethodsB("MAP_ENTRY", "getKey", "Map-Key").
+OutMethodsB("MAP_KEY_ITR", "next", "Map-Key").
+OutMethodsB("MAP_KEY_ITR", "nextElement", "Map-Key").
+OutMethodsB("MAP_VALUE_ITR", "next", "Map-Value").
+OutMethodsB("MAP_VALUE_ITR", "nextElement", "Map-Value").
+OutMethodsB("COL_ITR", "next", "Col-Value").
+OutMethodsB("COL_ITR", "nextElement", "Col-Value").
+OutMethodsB("COL_ITR", "previous", "Col-Value").
 
-HostPassers("COL_0", "iterator(", "COL_ITR").
-HostPassers("COL_0", "Iterator(", "COL_ITR").
-HostPassers("MAP_0", "entrySet()", "MAP_ENTRY_SET").
-HostPassers("MAP_0", "keySet()", "MAP_KEY_SET").
-HostPassers("MAP_0", "KeySet()", "MAP_KEY_SET").
-HostPassers("MAP_0", "values()", "MAP_VALUES").
+HostPassers("COL_0", "iterator", "COL_ITR").
+HostPassers("COL_0", "Iterator", "COL_ITR").
+HostPassers("MAP_0", "entrySet", "MAP_ENTRY_SET").
+HostPassers("MAP_0", "keySet", "MAP_KEY_SET").
+HostPassers("MAP_0", "KeySet", "MAP_KEY_SET").
+HostPassers("MAP_0", "values", "MAP_VALUES").
 HostPassers("MAP_0", "Entry", "MAP_ENTRY").
-HostPassers("MAP_0", "keys()", "MAP_KEY_ITR").
-HostPassers("MAP_ENTRY_SET", "iterator()", "MAP_ENTRY_ITR").
-HostPassers("MAP_VALUES", "iterator()", "MAP_VALUE_ITR").
-HostPassers("MAP_KEY_SET", "iterator()", "MAP_KEY_ITR").
+HostPassers("MAP_0", "keys", "MAP_KEY_ITR").
+HostPassers("MAP_ENTRY_SET", "iterator", "MAP_ENTRY_ITR").
+HostPassers("MAP_VALUES", "iterator", "MAP_VALUE_ITR").
+HostPassers("MAP_KEY_SET", "iterator", "MAP_KEY_ITR").
 HostPassers("MAP_ENTRY_ITR", "next", "MAP_ENTRY").
+
 
 
 .decl HostClassInnerClassPrefix(?innerClassPrefix:symbol) 

@@ -22,6 +22,7 @@
 <java.util.TreeMap: void putAll(java.util.Map)>
 <java.util.IdentityHashMap: void putAll(java.util.Map)>
 <java.util.HashMap: void putAll(java.util.Map)>
+<java.util.HashMap: void putAllForCreate(java.util.Map)>
 <java.util.Collections$UnmodifiableMap: void putAll(java.util.Map)>
 <java.util.Collections$CheckedMap: void putAll(java.util.Map)>
 <java.util.Collections$CheckedMap: void <init>(java.util.Map,java.lang.Class,java.lang.Class)>
@@ -141,13 +142,10 @@
 <java.util.TreeMap$AscendingSubMap: void <init>(java.util.TreeMap,boolean,java.lang.Object,boolean,boolean,java.lang.Object,boolean)>
 <java.util.TreeMap$DescendingSubMap: void <init>(java.util.TreeMap,boolean,java.lang.Object,boolean,boolean,java.lang.Object,boolean)>
 <java.util.concurrent.ConcurrentSkipListMap$SubMap: void <init>(java.util.concurrent.ConcurrentSkipListMap,java.lang.Object,boolean,java.lang.Object,boolean,boolean)>
-<java.util.HashMap: void putAllForCreate(java.util.Map)>
 <soot.util.UnitMap: void putAll(java.util.Map)>
 <org.jdom.ContentList: boolean addAll(java.util.Collection)>
-<org.jdom.ContentList: void clearAndSet(java.util.Collection)>
 <org.jdom.ContentList$FilterList: void <init>(org.jdom.ContentList,org.jdom.filter.Filter)>
 <org.jdom.AttributeList: boolean addAll(java.util.Collection)>
-<org.jdom.AttributeList: void clearAndSet(java.util.Collection)>
 <com.sleepycat.collections.StoredCollection: boolean addAll(java.util.Collection)>
 <sun.swing.BakedArrayList: void <init>(java.util.List)>
 <com.itextpdf.text.Section: boolean addAll(java.util.Collection)>
@@ -156,3 +154,4 @@
 <com.itextpdf.text.Paragraph: void <init>(com.itextpdf.text.Phrase)>
 <com.itextpdf.text.ListItem: void <init>(com.itextpdf.text.Phrase)>
 <com.itextpdf.text.Anchor: void <init>(com.itextpdf.text.Phrase)>
+<com.sleepycat.collections.StoredCollection: boolean addAll(java.util.Collection)>

@@ -176,6 +176,7 @@
 <org.jdom.AttributeList: java.lang.Object get(int)>
 <org.jdom.AttributeList: java.lang.Object remove(int)>
 <org.jdom.AttributeList: java.lang.Object set(int,java.lang.Object)>
+<org.jdom.ContentList$FilterList: java.lang.Object get(int)>
 <groovy.lang.Tuple: java.lang.Object get(int)>
 <groovy.lang.ObjectRange: java.lang.Object get(int)>
 <groovy.lang.IntRange: java.lang.Object get(int)>

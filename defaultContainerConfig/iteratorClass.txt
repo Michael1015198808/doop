@@ -27,7 +27,6 @@ java.util.ArrayDeque$DescendingIterator
 java.util.SubList$1
 java.util.LinkedHashMap$KeyIterator
 java.util.HashMap$KeyIterator
-javax.print.attribute.standard.PrinterStateReasons$PrinterStateReasonSetIterator
 java.util.EnumMap$KeyIterator
 java.util.HashMap$ValueIterator
 java.util.EnumMap$EnumMapIterator
@@ -79,5 +78,4 @@ java.util.concurrent.ConcurrentSkipListMap$SubMap$SubMapKeyIterator
 java.util.concurrent.ConcurrentSkipListMap$SubMap$SubMapEntryIterator
 org.jdom.ContentList$FilterListIterator
 com.sleepycat.collections.StoredIterator
-groovy.lang.ObjectRange$1
-groovy.lang.IntRange$1
+

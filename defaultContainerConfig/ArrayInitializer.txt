@@ -8,5 +8,3 @@
 <java.util.concurrent.CopyOnWriteArrayList: void <init>(java.lang.Object[])>	0	-1
 <groovy.lang.Tuple: void <init>(java.lang.Object[])>	0	-1
 <sun.awt.X11.XCreateWindowParams: void <init>(java.lang.Object[])>	0	-1
-<javax.swing.UIDefaults: void <init>(java.lang.Object[])>	0	-1
-<javax.swing.UIDefaults: void putDefaults(java.lang.Object[])>	0	-1

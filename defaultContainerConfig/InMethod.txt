@@ -36,8 +36,6 @@ Map-Value	<java.util.concurrent.ConcurrentSkipListMap$SubMap: java.lang.Object p
 Map-Value	<java.util.concurrent.ConcurrentSkipListMap$SubMap: java.lang.Object putIfAbsent(java.lang.Object,java.lang.Object)>	1
 Map-Value	<java.util.concurrent.ConcurrentSkipListMap$SubMap: boolean replace(java.lang.Object,java.lang.Object,java.lang.Object)>	2
 Map-Value	<java.util.concurrent.ConcurrentSkipListMap$SubMap: java.lang.Object replace(java.lang.Object,java.lang.Object)>	1
-Map-Value	<java.util.concurrent.ConcurrentSkipListMap$SubMap: boolean replace(java.lang.Object,java.lang.Object,java.lang.Object)>	2
-Map-Value	<java.util.concurrent.ConcurrentSkipListMap$SubMap: java.lang.Object replace(java.lang.Object,java.lang.Object)>	1
 Map-Value	<soot.util.UnitMap: java.lang.Object put(java.lang.Object,java.lang.Object)>	1
 Map-Value	<soot.AbstractUnitAllMapTo: void <init>(java.lang.Object)>	0
 Map-Key	<soot.util.UnitMap: java.lang.Object put(java.lang.Object,java.lang.Object)>	0
@@ -193,6 +191,7 @@ Col-Value	<soot.util.IterableSet: boolean add(java.lang.Object)>	0
 Col-Value	<soot.util.PhaseDumper$PhaseStack: java.lang.String push(java.lang.String)>	0
 Col-Value	<soot.util.IdentityHashSet: boolean add(java.lang.Object)>	0
 Col-Value	<soot.util.TrustingMonotonicArraySet: boolean add(java.lang.Object)>	0
+Col-Value	<polyglot.util.SubtypeSet: boolean add(java.lang.Object)>	0
 Col-Value	<org.jaxen.util.SingletonList: void <init>(java.lang.Object)>	0
 Col-Value	<java.util.concurrent.ConcurrentLinkedQueue: boolean add(java.lang.Object)>	0
 Col-Value	<java.util.concurrent.ConcurrentLinkedQueue: boolean offer(java.lang.Object)>	0
@@ -237,6 +236,8 @@ Col-Value	<org.jdom.AttributeList: void add(int,org.jdom.Attribute)>	1
 Col-Value	<org.jdom.AttributeList: void add(int,java.lang.Object)>	1
 Col-Value	<org.jdom.AttributeList: java.lang.Object set(int,java.lang.Object)>	1
 Col-Value	<org.jdom.AttributeList: java.lang.Object set(int,org.jdom.Attribute)>	1
+Col-Value	<org.jdom.ContentList$FilterList: void add(int,java.lang.Object)>	1
+Col-Value	<org.jdom.ContentList$FilterList: java.lang.Object set(int,java.lang.Object)>	1
 Col-Value	<com.itextpdf.text.Section: void add(int,com.itextpdf.text.Element)>	1
 Col-Value	<com.itextpdf.text.Section: boolean add(com.itextpdf.text.Element)>	0
 Col-Value	<com.itextpdf.text.Phrase: void add(int,com.itextpdf.text.Element)>	1
@@ -244,3 +245,8 @@ Col-Value	<com.itextpdf.text.Phrase: boolean add(com.itextpdf.text.Element)>	0
 Col-Value	<com.itextpdf.text.Phrase: void addSpecial(com.itextpdf.text.Element)>	0
 Col-Value	<com.itextpdf.text.Paragraph: boolean add(com.itextpdf.text.Element)>	0
 Col-Value	<com.itextpdf.text.pdf.XfaForm$Stack2: java.lang.Object push(java.lang.Object)>	0
+Col-Value	<com.sleepycat.collections.StoredCollection: boolean add(java.lang.Object,java.lang.Object)>	1
+Col-Value	<com.sleepycat.collections.StoredKeySet: boolean add(java.lang.Object)>	0
+Col-Value	<com.sleepycat.collections.StoredValueSet: boolean add(java.lang.Object)>	0
+Col-Value	<com.sleepycat.collections.StoredIterator: void add(java.lang.Object)>	0
+Col-Value	<com.sleepycat.collections.StoredIterator: void set(java.lang.Object)>	0

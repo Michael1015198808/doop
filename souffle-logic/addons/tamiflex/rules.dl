@@ -167,6 +167,7 @@ OptForNameInvocation(?invocation, ?inmethod) :-
   isMethod(?sig),
   StaticMethodInvocation(?invocation, ?sig, ?inmethod).
 
+Value_Type(?classObj, "java.lang.Class"),
 VarPointsTo(?hctx, ?classObj, ?ctx, ?return) :-
   OptForNameInvocation(?invocation, ?inmethod),
   ReachableContext(?ctx, ?inmethod),

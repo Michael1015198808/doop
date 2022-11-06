@@ -56,7 +56,6 @@
 //for ThisPropagater
 .decl CollectionThisPropagate(?base:Var, ?this:Var)
 //.output CollectionThisPropagate(IO="file",filename="CollectionThisPropagate.csv",delimiter="\t")
-.decl SetKindInMap(?kind:symbol)
 
 //original host generate
 HostOfVar(?var, "MAP_0", ?obj):-
@@ -109,7 +108,7 @@ HostOfVar(?result, ?generatedKind, ?host):-
     Var_Type(?var, ?baseType),
     isVectorClass(?baseType),
     MethodInvocation_Method(?invocation, ?methodSignature),
-    contains("elements(",?methodSignature),
+    contains("elements",?methodSignature),
     ?generatedKind = "COL_ITR".
 
 HostOfVar(?result, ?generatedKind, ?host):-
@@ -120,7 +119,7 @@ HostOfVar(?result, ?generatedKind, ?host):-
     Var_Type(?var, ?baseType),
     isHashtableClass(?baseType),
     MethodInvocation_Method(?invocation, ?methodSignature),
-    contains("elements(",?methodSignature),
+    contains("elements",?methodSignature),
     ?generatedKind = "MAP_VALUE_ITR".
 
 
@@ -131,12 +130,11 @@ ArrayInitializerNeedProcessing(?invocation, ?methodSignature, ?index0, ?index1):
     MethodInvocation_Method(?invocation, ?methodSignature),
     ArrayInitializer(?methodSignature, ?index0, ?index1).
 
-//this var
+
+.decl SetKindInMap(?kind:symbol)
 SetKindInMap("MAP_KEY_SET").
 SetKindInMap("MAP_VALUES").
 SetKindInMap("MAP_ENTRY_SET").
-// SetKindInMap("MAP_ENTRY_ITR").
-
 
 HostOfVar(?this, ?kind, ?host):-
     CollectionThisPropagate(?base, ?this),
@@ -147,16 +145,6 @@ CollectionThisPropagate(?base, ?this):-
     CallGraphEdge(_, ?invocation, _, ?callee),
     ThisVar(?callee, ?this),
     InvocationActualParamAndBase(-1, ?invocation, ?base).
-
-HostOfVar(?this, "MAP_ENTRY", ?host):-
-    CallGraphEdge(_, ?invocation, _, ?callee),
-    InvocationActualParamAndBase(-1, ?invocation, ?base),
-    ThisVar(?callee, ?this),
-    Method_DeclaringType(?callee, ?class),
-    HostOfVar(?base, ?kind, ?host),
-    (?class = "java.util.Hashtable$Entry";
-    ?class = "java.util.TreeMap$Entry"),
-    ?kind = "MAP_ENTRY".
 
 HostOfVar(?this, ?kind, ?host):-
     CallGraphEdge(_, ?invocation, _, ?callee),
@@ -194,6 +182,25 @@ HostOfVar(?virtualArray, ?kind, ?host):-
 VarPointsTo("<<immutable-hcontext>>", ?value, "<<immutable-context>>", ?virtualArray):-
     VirtualArrayAssign(?arrayIndex, ?virtualArray),
     ArrayIndexPointsTo(_, ?value, _, ?arrayIndex).
+
+// passing host to inner keySet/valueSet
+//keySet
+HostOfVar(?to,"MAP_KEY_SET",?host):-
+    (AssignContextInsensitiveHeapAllocation(?heapValue, ?to, ?inmethod);
+    AssignNormalHeapAllocation(?heapValue, ?to, ?inmethod)),
+    Value_Type(?heapValue, ?type),
+    KeySetOrValueSet(?type,_),
+    ThisVar(?inmethod, ?this),
+    HostOfVar(?this,"MAP_0",?host).
+//valueSet
+HostOfVar(?to,"MAP_VALUES",?host):-
+    (AssignContextInsensitiveHeapAllocation(?heapValue, ?to, ?inmethod);
+    AssignNormalHeapAllocation(?heapValue, ?to, ?inmethod)),
+    Value_Type(?heapValue, ?type),
+    KeySetOrValueSet(_,?type),
+    ThisVar(?inmethod, ?this),
+    HostOfVar(?this,"MAP_0",?host).
+
 
 //entrySet
 VarPointsTo("<<immutable-hcontext>>", ?heapValue, "<<immutable-context>>", ?arg):-
@@ -400,7 +407,6 @@ CollectionVarPointsToTemp(?arg, ?result, ?allowedType):-
     CollectionCutshortcutAssign(?arg, ?result),
     Var_Type(?result, ?allowedType).
 
-
 //shouldStopEdge
 NotPassingReturnAssignFrom(?return):-
     ReturnVar(?return, ?method),
@@ -429,27 +435,32 @@ NotPassingReturnAssignFrom(?return):-
     contains("Entry(",?method);
     contains("Iterator(",?method)).
 
-// logic about collection in main pta analysis
+// logic to cut collection edges in main pta analysis
+
 RelatedCollectionOutMethod(?method):-   
     OutMethodsA(?method, _).
-RelatedCollectionOutMethod(?method):-
+
+.decl RelatedCollectionOutMethodB(?method:Method)
+
+RelatedCollectionOutMethodB(?method):-
     Method_DeclaringType(?method, ?classType),
     isMapEntryClass(?classType),
     (contains("getValue(", ?method);
     contains("getKey(", ?method)).
 
-RelatedCollectionOutMethod(?method):-
+RelatedCollectionOutMethodB(?method):-
     Method_DeclaringType(?method, ?classType),
     IteratorClass(?classType),
     (contains("next()", ?method);
-    contains("previous()", ?method)),
-    HostClassInnerClass(?classType).
+    contains("previous()", ?method)).
+    //HostClassInnerClass(?classType).
 
-RelatedCollectionOutMethod(?method):-
+RelatedCollectionOutMethodB(?method):-
     Method_DeclaringType(?method, ?classType),
     isEnumerationClass(?classType),
-    contains("nextElement()", ?method),
-    HostClassInnerClass(?classType).
+    contains("nextElement()", ?method).
+    //HostClassInnerClass(?classType).
+
 
 #ifdef TAMIFLEX
 //tamiflex return var
@@ -480,17 +491,6 @@ HostOfVar(?this, ?kind, ?host):-
     HostOfVar(?base, ?kind, ?host),
     Method_DeclaringType(?callee, ?class),
     ?class = "java.util.Hashtable$Enumerator".
-
-HostOfVar(?this, "MAP_ENTRY", ?host):-
-    Tamiflex_Invoke(_, ?invocation, ?callee),
-    ! Method_Modifier("static", ?callee),
-    ActualParam(0, ?invocation, ?base),
-    ThisVar(?callee, ?this),
-    Method_DeclaringType(?callee, ?class),
-    HostOfVar(?base, ?kind, ?host),
-    (?class = "java.util.Hashtable$Entry";
-    ?class = "java.util.TreeMap$Entry"),
-    ?kind = "MAP_ENTRY".
 
 //host passer
 HostOfVar(?result, ?generatedKind, ?host):-
@@ -526,6 +526,7 @@ HostOfVar(?result, ?generatedKind, ?host):-
 
 //array initializer
 .decl ArrayInitializerNeedProcessingTamiflex(?invocation:MethodInvocation, ?constructor:Method, ?index0:number, ?index1:number)
+//.output ArrayInitializerNeedProcessingTamiflex(IO="file",filename="ArrayInitializerNeedProcessingTamiflex.csv",delimiter="\t")
 
 ArrayInitializerNeedProcessingTamiflex(?invocation, ?methodSignature, ?index0, ?index1):-
     Tamiflex_Invoke_Simple(?invocation, ?methodSignature),
@@ -577,6 +578,7 @@ PlusVar(?var, ?caller, ?elementType):-
 
 //correlation extender
 .decl CorrelationExtenderNeedProcessingTamiflex(?invocation:MethodInvocation, ?callee:Method)
+//.output CorrelationExtenderNeedProcessingTamiflex(IO="file",filename="CorrelationExtenderNeedProcessingTamiflex.csv",delimiter="\t")
 CorrelationExtenderNeedProcessingTamiflex(?invocation, ?callee):-
     TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
     CorrelationExtender(?callee, _, _).
@@ -604,6 +606,7 @@ ExtendCorrelation(?arg1, ?arg1):-
 
 //in argument to host
 .decl InArgumentToHostTamiflexTemp(?actual:Var, ?callee:Method, ?base:Var)
+//.output InArgumentToHostTamiflexTemp(IO="file",filename="InArgumentToHostTamiflexTemp.csv",delimiter="\t")
 InArgumentToHostTamiflexTemp(?actual, ?callee, ?base):-
     TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
     TamiflexInvocationActualParam(?invocation, ?actual),
@@ -620,5 +623,6 @@ executeInArgumentToHost(?arg, ?host, ?category) :-
     MethodParameterConstraint(?callee, _, ?cons, ?category),
     basic.SubtypeOf(?hostType, ?cons),
     Value_Type(?host, ?hostType).
+
 
 #endif //TAMIFLEX

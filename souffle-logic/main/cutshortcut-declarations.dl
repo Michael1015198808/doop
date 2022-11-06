@@ -1,7 +1,6 @@
 //input from soot generated facts
 
 #define STOREPART 1
-//#define LOADPART 1
 #define CONTAINER 1
 #define LOCALFLOW 1
 
