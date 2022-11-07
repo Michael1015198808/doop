@@ -79,17 +79,17 @@ def runDoop(app, analyse):
     print YELLOW + BOLD + 'Running ' + analyse+ ' for '+app+"...."+RESET
     print cmd
     os.system(cmd)
-#    clearcmd = 'rm -rf out'
-#    os.system(clearcmd)
-#    print clearcmd
+    clearcmd = 'rm -rf out'
+    os.system(clearcmd)
+    print clearcmd
     if analyse  == 'zipper-e':
         pass
-#        clearcmd = 'rm -rf zipper/cache'
-#        os.system(clearcmd)
-#        print clearcmd
-#        clearcmd = 'rm -rf zipper/out'
-#        os.system(clearcmd)
-#        print clearcmd
+        clearcmd = 'rm -rf zipper/cache'
+        os.system(clearcmd)
+        print clearcmd
+        clearcmd = 'rm -rf zipper/out'
+        os.system(clearcmd)
+        print clearcmd
 
 def run(args):
     apps = []

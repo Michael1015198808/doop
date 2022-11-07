@@ -452,14 +452,14 @@ RelatedCollectionOutMethodB(?method):-
     Method_DeclaringType(?method, ?classType),
     IteratorClass(?classType),
     (contains("next()", ?method);
-    contains("previous()", ?method)).
-    //HostClassInnerClass(?classType).
+    contains("previous()", ?method)),
+    HostClassInnerClass(?classType).
 
 RelatedCollectionOutMethodB(?method):-
     Method_DeclaringType(?method, ?classType),
     isEnumerationClass(?classType),
-    contains("nextElement()", ?method).
-    //HostClassInnerClass(?classType).
+    contains("nextElement()", ?method),
+    HostClassInnerClass(?classType).
 
 
 #ifdef TAMIFLEX
