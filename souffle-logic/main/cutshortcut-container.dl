@@ -75,7 +75,6 @@ HostOfVar(?var, "COL_0", ?obj):-
     ContainerType(?objType, ?containerType),
     ?containerType = "COLLECTION".
 
-
 //host passer
 HostOfVar(?result, ?generatedKind, ?host):-
     HostOfVar(?var, ?containerKind, ?host),
@@ -409,7 +408,6 @@ NotPassingReturnAssignFrom(?return):-
     (contains("elements()",?method);
     contains("keys()", ?method)).
     
-
 NotPassingReturnAssignFrom(?return):-
     ReturnVar(?return, ?method),
     Method_DeclaringType(?method, ?classType),
@@ -437,7 +435,9 @@ RelatedCollectionOutMethod(?method):-
    // !TaintContainerType(?classType).
 
 .decl RelatedCollectionOutMethodB(?method:Method)
+.decl MapEntryPoll(?method:Method)
 
+MapEntryPoll(?method),
 RelatedCollectionOutMethodB(?method):-
     Method_DeclaringType(?method, ?classType),
     isMapEntryClass(?classType),
@@ -448,8 +448,7 @@ RelatedCollectionOutMethodB(?method):-
     Method_DeclaringType(?method, ?classType),
     IteratorClass(?classType),
     (contains("next()", ?method);
-    contains("previous()", ?method)),
-    HostClassInnerClass(?classType).
+    contains("previous()", ?method)).
 
 RelatedCollectionOutMethodB(?method):-
     Method_DeclaringType(?method, ?classType),
@@ -457,12 +456,6 @@ RelatedCollectionOutMethodB(?method):-
     contains("nextElement()", ?method),
     HostClassInnerClass(?classType).
 
-.decl TaintContainerTypeTemp(?sig:symbol)
-.output TaintContainerTypeTemp(IO="file",filename="TaintContainerTypeTemp.csv",delimiter="\t")
-TaintContainerTypeTemp(?sig):-
-    ContainerType(?class, _),
-    isClassType(?class),
-    ?sig = cat("<", ?class).
 
 .decl TaintContainerType(?class:Type)
 .output TaintContainerType(IO="file",filename="TaintContainerType.csv",delimiter="\t")
@@ -474,13 +467,17 @@ TaintContainerType(?class):-
 
 .decl TaintHost(?host:Value)
 .output TaintHost(IO="file",filename="TaintHost.csv",delimiter="\t")
+
 TaintHost(?host):-
-    isHost(?host),
-    TaintContainerType(?valuetype),
-    Value_Type(?host, ?valuetype).
+    CallGraphEdge(_, ?invocation,_,?callee),
+    CorrelationExtender(?callee, _, ?smallindex),
+    InvocationActualParamAndBase(?smallindex, ?invocation, ?smallarg),
+    HostOfVar(?smallarg,_,?host),
+    Value_Type(?host, ?valuetype),
+    TaintContainerType(?valuetype).
 
 TaintHost(?bigHost):-
-    MethodInvocation_Method(?invocation, ?callee),
+    CallGraphEdge(_, ?invocation,_,?callee),
     CorrelationExtender(?callee, ?bigindex, ?smallindex),
     InvocationActualParamAndBase(?smallindex, ?invocation, ?smallarg),
     InvocationActualParamAndBase(?bigindex, ?invocation, ?bigarg),
@@ -488,10 +485,10 @@ TaintHost(?bigHost):-
     TaintHost(?host),
     HostOfVar(?bigarg,_,?bigHost).
 
-.decl TaintHostOutAssign(?actualret:Var, ?return:Var)
-.output TaintHostOutAssign(IO="file",filename="TaintHostOutAssign.csv",delimiter="\t")
+.decl TaintHostOutAssignA(?actualret:Var, ?return:Var)
+.output TaintHostOutAssignA(IO="file",filename="TaintHostOutAssignA.csv",delimiter="\t")
 
-TaintHostOutAssign(?result, ?return):-
+TaintHostOutAssignA(?result, ?return):-
   CallGraphEdge(_, ?invocation, _, ?method),
   AssignReturnValue(?invocation, ?result),
   ReturnVar(?return, ?method),
@@ -501,18 +498,8 @@ TaintHostOutAssign(?result, ?return):-
   (RelatedCollectionOutMethod(?method);
   RelatedCollectionOutMethodB(?method)).
 
-TaintHostOutAssign(?result, ?return) :-
-  configuration.ContextResponse(_, _, ?invocation, ?baseObj, ?method, _),
-  AssignReturnValue(?invocation, ?result),
-  (RelatedCollectionOutMethod(?method);
-  RelatedCollectionOutMethodB(?method)),
-  ReturnVar(?return, ?method),
-  Value_Type(?baseObj,?type),
-  ?sig = cat("<",?type),
-  !contains("<java.util", ?sig).
-
 CollectionCutshortcutAssign(?return, ?result):-
-    TaintHostOutAssign(?result, ?return).
+    TaintHostOutAssignA(?result, ?return).
 
 #ifdef TAMIFLEX
 //tamiflex return var
@@ -678,8 +665,8 @@ executeInArgumentToHost(?arg, ?host, ?category) :-
 
 //taint by unknown collection
 TaintHost(?bigHost):-
-    Tamiflex_Invoke(_, ?invocation, ?methodSignature),
-    CorrelationExtender(?methodSignature, _, ?smallindex),
+    TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
+    CorrelationExtender(?callee, _, ?smallindex),
     TamiflexInvocationBase(?invocation, ?smallarg),
     TamiflexInvocationActualParam(?invocation, ?bigarg),
     ?smallindex = -1,
@@ -688,8 +675,8 @@ TaintHost(?bigHost):-
     HostOfVar(?bigarg,_,?bigHost).
 
 TaintHost(?bigHost):-
-    Tamiflex_Invoke(_, ?invocation, ?methodSignature),
-    CorrelationExtender(?methodSignature, ?bigindex, _),
+    TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
+    CorrelationExtender(?callee, ?bigindex, _),
     TamiflexInvocationBase(?invocation, ?bigarg),
     TamiflexInvocationActualParam(?invocation, ?smallarg),
     ?bigindex = -1,
@@ -698,8 +685,8 @@ TaintHost(?bigHost):-
     HostOfVar(?bigarg,_,?bigHost).
 
 TaintHost(?bigHost):-
-    Tamiflex_Invoke(_, ?invocation, ?methodSignature),
-    CorrelationExtender(?methodSignature, ?bigindex, ?smallindex),
+    TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
+    CorrelationExtender(?callee, ?bigindex, ?smallindex),
     TamiflexInvocationActualParam(?invocation, ?smallarg),
     TamiflexInvocationActualParam(?invocation, ?bigarg),
     ?smallindex != -1,

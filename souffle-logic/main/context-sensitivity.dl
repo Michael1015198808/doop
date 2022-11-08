@@ -590,12 +590,11 @@ OptReturnAssign(?callerCtx, ?local, ?calleeCtx, ?return) :-
 #endif //CONTAINER
   ReturnVar(?return, ?method).
   
-//if callsite is in itr class
 OptReturnAssign(?callerCtx, ?local, ?calleeCtx, ?return) :-
   CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?method),
   AssignReturnValue(?invocation, ?local),
 #if defined(CONTAINER)
-  RelatedCollectionOutMethodB(?method),
+  MapEntryPoll(?method),
   Instruction_Method(?invocation, ?caller),
   Method_DeclaringType(?caller,?callerClass),
   IteratorClass(?callerClass),
