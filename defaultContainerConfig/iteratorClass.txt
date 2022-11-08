@@ -1,9 +1,6 @@
-soot.jimple.parser.node.TypedLinkedList$TypedLinkedListIterator
 java.util.ArrayDeque$DeqIterator
 java.util.TreeMap$DescendingKeyIterator
 java.util.AbstractList$ListItr
-sun.security.jca.ProviderList$ServiceList$1
-soot.util.TrustingMonotonicArraySet$ArrayIterator
 java.util.concurrent.ConcurrentHashMap$ValueIterator
 java.util.concurrent.SynchronousQueue$EmptyIterator
 java.util.concurrent.LinkedBlockingQueue$Itr
@@ -11,12 +8,10 @@ java.util.IdentityHashMap$KeyIterator
 java.util.PriorityQueue$Itr
 java.util.LinkedList$ListItr
 java.util.TreeMap$KeyIterator
-soot.jimple.spark.ondemand.genericutil.ArraySet$ArraySetIterator
 java.util.TreeMap$NavigableSubMap$DescendingSubMapKeyIterator
 java.util.TreeMap$NavigableSubMap$DescendingSubMapEntryIterator
 java.util.Collections$CheckedCollection$1
 java.util.TreeMap$ValueIterator
-soot.PatchingChain$PatchingIterator
 java.util.LinkedHashMap$ValueIterator
 java.util.EnumMap$ValueIterator
 java.util.TreeMap$NavigableSubMap$SubMapKeyIterator
@@ -39,17 +34,13 @@ java.util.Hashtable$EmptyIterator
 java.util.WeakHashMap$HashIterator
 java.util.Collections$UnmodifiableCollection$1
 java.util.IdentityHashMap$IdentityHashMapIterator
-soot.util.ArraySet$ArrayIterator
 java.util.WeakHashMap$KeyIterator
 java.util.Collections$UnmodifiableList$1
-soot.util.HashChain$LinkIterator
 java.util.AbstractList$Itr
 java.util.LinkedList$DescendingIterator
 java.util.Collections$EmptySet$1
 java.util.IdentityHashMap$ValueIterator
 java.util.LinkedHashMap$LinkedHashIterator
-soot.shimple.internal.SPatchingChain$SPatchingIterator
-javax.security.auth.Subject$SecureSet$1
 java.util.TreeMap$NavigableSubMap$SubMapEntryIterator
 java.util.WeakHashMap$ValueIterator
 java.util.Hashtable$Enumerator
@@ -76,6 +67,3 @@ java.util.concurrent.ConcurrentSkipListMap$SubMap$SubMapIter
 java.util.concurrent.ConcurrentSkipListMap$SubMap$SubMapValueIterator
 java.util.concurrent.ConcurrentSkipListMap$SubMap$SubMapKeyIterator
 java.util.concurrent.ConcurrentSkipListMap$SubMap$SubMapEntryIterator
-org.jdom.ContentList$FilterListIterator
-com.sleepycat.collections.StoredIterator
-

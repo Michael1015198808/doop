@@ -3,14 +3,11 @@ java.util.WeakHashMap$EntrySet	java.util.WeakHashMap
 java.util.TreeMap$EntrySet	java.util.TreeMap
 java.util.TreeMap$NavigableSubMap$EntrySetView	java.util.TreeMap
 java.util.TreeMap$DescendingSubMap$DescendingEntrySetView	java.util.TreeMap
-sun.misc.SoftCache$EntrySet	sun.misc.SoftCache
 java.util.Hashtable$EntrySet	java.util.Hashtable
 java.util.TreeMap$AscendingSubMap$AscendingEntrySetView	java.util.TreeMap
-java.lang.ProcessEnvironment$StringEntrySet	java.lang.ProcessEnvironment$StringEntrySet
 java.util.Collections$CheckedMap$CheckedEntrySet	java.util.Collections$CheckedMap
 java.util.Collections$UnmodifiableMap$UnmodifiableEntrySet	java.util.Collections$UnmodifiableMap
 java.util.IdentityHashMap$EntrySet	java.util.IdentityHashMap
 java.util.HashMap$EntrySet	java.util.HashMap
-javax.print.MimeType$ParameterMapEntrySet	javax.print.MimeType
 java.util.concurrent.ConcurrentHashMap$EntrySet	java.util.concurrent.ConcurrentHashMap$EntryIterator
 java.util.concurrent.ConcurrentSkipListMap$EntrySet	java.util.concurrent.ConcurrentSkipListMap

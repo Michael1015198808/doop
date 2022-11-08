@@ -562,9 +562,7 @@ VarPointsTo(?hctx, ?value, ?callerCtx, ?local) :-
 
 #else
 
-
 #if defined(CUTSHORTCUT)
-
 OptReturnAssign(?callerCtx, ?local, ?calleeCtx, ?return) :-
   CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?method),
   AssignReturnValue(?invocation, ?local),
@@ -578,18 +576,35 @@ OptReturnAssign(?callerCtx, ?local, ?calleeCtx, ?return) :-
   ReturnVar(?return, ?method).
 
 OptReturnAssign(?callerCtx, ?local, ?calleeCtx, ?return) :-
-   CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?method),
-   AssignReturnValue(?invocation, ?local),
- #if defined(CONTAINER)
-   RelatedCollectionOutMethodB(?method),
-   Instruction_Method(?invocation, ?caller),
-   MethodInvocation_Base(?invocation, ?base),
-   MethodFormalParamAndThisIncludingLocal(-1, ?caller, ?base),
- #endif //CONTAINER
- #if defined(LOCALFLOW)
-   !SpecialHandledReturnVar(?return),
- #endif //LOCALFLOW
-   ReturnVar(?return, ?method).
+  CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?method),
+  AssignReturnValue(?invocation, ?local),
+#if defined(CONTAINER)
+  RelatedCollectionOutMethodB(?method),
+  Instruction_Method(?invocation, ?caller),
+  MethodInvocation_Base(?invocation, ?base),
+  MethodFormalParamAndThisIncludingLocal(-1, ?caller, ?base),
+#else //CONTAINER
+#if defined(LOCALFLOW)
+  !SpecialHandledReturnVar(?return),
+#endif //LOCALFLOW
+#endif //CONTAINER
+  ReturnVar(?return, ?method).
+  
+//if callsite is in itr class
+OptReturnAssign(?callerCtx, ?local, ?calleeCtx, ?return) :-
+  CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?method),
+  AssignReturnValue(?invocation, ?local),
+#if defined(CONTAINER)
+  RelatedCollectionOutMethodB(?method),
+  Instruction_Method(?invocation, ?caller),
+  Method_DeclaringType(?caller,?callerClass),
+  IteratorClass(?callerClass),
+#else //CONTAINER
+#if defined(LOCALFLOW)
+  !SpecialHandledReturnVar(?return),
+#endif //LOCALFLOW
+#endif //CONTAINER
+  ReturnVar(?return, ?method).
 
 #else
 OptReturnAssign(?callerCtx, ?local, ?calleeCtx, ?return) :-

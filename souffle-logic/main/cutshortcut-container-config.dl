@@ -2,21 +2,17 @@
 .input _HostClass(IO="file", filename="HostClasses.txt", delimiter="\t")
 // .output _HostClass(IO="file",filename="InputHostClasses.csv",delimiter="\t")
 
-
 .decl _IteratorClass(?class:Type)
 .input _IteratorClass(IO="file", filename="iteratorClass.txt", delimiter="\t")
 // .output _IteratorClass(IO="file",filename="InputiteratorClass.csv",delimiter="\t")
-
 
 .decl _CorrelationExtender(?inmethod:Method)
 .input _CorrelationExtender(IO="file", filename="CorrelationExtenders.txt", delimiter="\t")
 // .output _CorrelationExtender(IO="file",filename="InputCorrelationExtenders.csv",delimiter="\t")
 
-
 .decl _CorrelationExtenderOne(?inmtehod:Method)
 .input _CorrelationExtenderOne(IO="file", filename="CorrelationExtenders1.txt", delimiter="\t")
 // .output _CorrelationExtenderOne(IO="file",filename="InputCorrelationExtender1.csv",delimiter="\t")
-
 
 .decl _UnrelatedInvokes(?inmethod:Method, ?index:number)
 .input _UnrelatedInvokes(IO="file", filename="unrelatedInvokes.txt", delimiter="\t")
@@ -30,7 +26,6 @@
 .input _MapValueOut(IO="file", filename="MapValueOut.txt", delimiter="\t")
 // .output _MapValueOut(IO="file",filename="InputMapValueOut.csv",delimiter="\t")
 
-
 .decl _MapKeyOut(?inmethod:Method)
 .input _MapKeyOut(IO="file", filename="MapKeyOut.txt", delimiter="\t")
 // .output _MapKeyOut(IO="file",filename="InputMapKeyOut.csv",delimiter="\t")
@@ -43,7 +38,6 @@
 .input _InMethod(IO="file", filename="InMethod.txt", delimiter="\t")
 // .output _InMethod(IO="file",filename="InputInMethod.csv",delimiter="\t")
 
-
 .decl _InWithCons(?category:symbol, ?method:Method, ?index:number, ?cons:Type)
 .input _InWithCons(IO="file", filename="InWithCons.txt", delimiter="\t")
 // .output _InWithCons(IO="file",filename="InputInWithCons.csv",delimiter="\t")
@@ -55,7 +49,6 @@
 .decl _EntrySetClass(?entrySetClass:Type, ?allocClass:Type)
 .input _EntrySetClass(IO="file", filename="EntrySet.txt", delimiter="\t")
 // .output _EntrySetClass(IO="file",filename="InputEntrySetClass.csv",delimiter="\t")
-
 
 // start 
 .decl isHostClass(?class:Type)
@@ -142,7 +135,6 @@ CorrelationExtender(?inmethod, ?index0, ?index1) :-
     ?inmethod = "<EDU.purdue.cs.bloat.util.Graph$EdgeSet: void <init>(EDU.purdue.cs.bloat.util.Graph,EDU.purdue.cs.bloat.util.GraphNode,java.util.Set)>"),
     ?index0 = -1,
     ?index1 = 2.
-
 
 UnrelatedInvokes(?invocation):-
     _UnrelatedInvokes(?inmethod,?index),
@@ -237,8 +229,6 @@ HostPassers("MAP_VALUES", "iterator", "MAP_VALUE_ITR").
 HostPassers("MAP_KEY_SET", "iterator", "MAP_KEY_ITR").
 HostPassers("MAP_ENTRY_ITR", "next", "MAP_ENTRY").
 
-
-
 .decl HostClassInnerClassPrefix(?innerClassPrefix:symbol) 
 HostClassInnerClassPrefix(?innerClassPrefix):-
     isHostClass(?class),
@@ -249,7 +239,6 @@ HostClassInnerClass(?inner) :-
     HostClassInnerClassPrefix(?innerClassPrefix),
     isClassType(?inner),
     substr(?inner, 0, strlen(?innerClassPrefix)) = ?innerClassPrefix.
-
 
 EntrySetClass(?entrySetClass, ?allocClass):-
     _EntrySetClass(?entrySetClass, ?allocClass),
