@@ -2,11 +2,9 @@
 <java.util.AbstractSequentialList: boolean addAll(int,java.util.Collection)>
 <java.util.AbstractList: boolean addAll(int,java.util.Collection)>
 <java.util.ArrayList: boolean addAll(int,java.util.Collection)>
-<java.util.LinkedList: boolean addAll(int,java.util.Collection)>
 <java.util.Collections$SynchronizedList: boolean addAll(int,java.util.Collection)>
 <java.util.Vector: boolean addAll(int,java.util.Collection)>
 <java.util.SubList: boolean addAll(int,java.util.Collection)>
 <java.util.Collections$CheckedList: boolean addAll(int,java.util.Collection)>
 <java.util.Collections$SynchronizedList: boolean addAll(int,java.util.Collection)>
 <java.util.Collections$UnmodifiableList: boolean addAll(int,java.util.Collection)>
-<java.util.concurrent.CopyOnWriteArrayList: boolean addAll(int,java.util.Collection)>

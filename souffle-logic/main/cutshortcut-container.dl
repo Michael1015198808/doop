@@ -192,7 +192,24 @@ HostOfVar(?to,"MAP_VALUES",?host):-
     KeySetOrValueSet(_,?type),
     ThisVar(?inmethod, ?this),
     HostOfVar(?this,"MAP_0",?host).
+//LinkedList
+HostOfVar(?to,"COL_0",?host):-
+    (AssignContextInsensitiveHeapAllocation(?heapValue, ?to, ?inmethod);
+    AssignNormalHeapAllocation(?heapValue, ?to, ?inmethod)),
+    ?inmethod = "<java.util.LinkedList: boolean addAll(int,java.util.Collection)>",
+    Value_Type(?heapValue, ?type),
+    ?type = "java.util.LinkedList$Entry",
+    ThisVar(?inmethod, ?this),
+    HostOfVar(?this,"COL_0",?host).
 
+.decl LinkedListDebug(?heapvalue:Value, ?to:Var, ?inmethod:Method)
+.output LinkedListDebug(IO="file",filename="LinkedListDebug.csv",delimiter="\t")
+LinkedListDebug(?heapValue, ?to, ?inmethod):-
+    (AssignContextInsensitiveHeapAllocation(?heapValue, ?to, ?inmethod);
+    AssignNormalHeapAllocation(?heapValue, ?to, ?inmethod)),
+    ?inmethod = "<java.util.LinkedList: boolean addAll(int,java.util.Collection)>",
+    Value_Type(?heapValue, ?type),
+    ?type = "java.util.LinkedList$Entry".
 
 //entrySet
 VarPointsTo("<<immutable-hcontext>>", ?heapValue, "<<immutable-context>>", ?arg):-
@@ -459,11 +476,26 @@ RelatedCollectionOutMethodB(?method):-
 
 .decl TaintContainerType(?class:Type)
 .output TaintContainerType(IO="file",filename="TaintContainerType.csv",delimiter="\t")
-TaintContainerType(?class):-
-    ContainerType(?class, _),
+
+.decl TaingTypeTemp(?class:Type)
+.output TaingTypeTemp(IO="file",filename="TaingTypeTemp.csv",delimiter="\t")
+TaingTypeTemp(?class):-
+    ContainerType(?class, "COLLECTION"),
     isClassType(?class),
-    ?sig = cat("<", ?class),
-    !contains("<java.util", ?sig).
+    !ClassModifier("abstract", ?class),
+    !LimitedHostClasses(?class),
+    !AllExcludeClass(?class).
+
+TaintContainerType(?class):-
+    TaingTypeTemp(?class),
+    !isAbstractListClass(?class).
+
+.decl TaintAbstractListClass(?class:Type)
+.output TaintAbstractListClass(IO="file",filename="TaintAbstractListClass.csv",delimiter="\t")
+TaintAbstractListClass(?class):-
+    TaingTypeTemp(?class),
+    isAbstractListClass(?class).
+
 
 .decl TaintHost(?host:Value)
 .output TaintHost(IO="file",filename="TaintHost.csv",delimiter="\t")
@@ -474,7 +506,8 @@ TaintHost(?host):-
     InvocationActualParamAndBase(?smallindex, ?invocation, ?smallarg),
     HostOfVar(?smallarg,_,?host),
     Value_Type(?host, ?valuetype),
-    TaintContainerType(?valuetype).
+    TaintContainerType(?valuetype),
+    !TaintAbstractListClass(?valuetype).
 
 TaintHost(?bigHost):-
     CallGraphEdge(_, ?invocation,_,?callee),
@@ -483,7 +516,9 @@ TaintHost(?bigHost):-
     InvocationActualParamAndBase(?bigindex, ?invocation, ?bigarg),
     HostOfVar(?smallarg,_,?host),
     TaintHost(?host),
-    HostOfVar(?bigarg,_,?bigHost).
+    HostOfVar(?bigarg,_,?bigHost),
+    Value_Type(?bigHost, ?valuetype),
+    !TaintAbstractListClass(?valuetype).
 
 .decl TaintHostOutAssignA(?actualret:Var, ?return:Var)
 .output TaintHostOutAssignA(IO="file",filename="TaintHostOutAssignA.csv",delimiter="\t")
@@ -500,6 +535,31 @@ TaintHostOutAssignA(?result, ?return):-
 
 CollectionCutshortcutAssign(?return, ?result):-
     TaintHostOutAssignA(?result, ?return).
+
+
+.decl AbstractListSubClassToGetMethod(?class:Type, ?method:Method)
+.output AbstractListSubClassToGetMethod(IO="file",filename="AbstractListSubClassToGetMethod.csv",delimiter="\t")
+AbstractListSubClassToGetMethod(?class, ?callee):-
+    TaintAbstractListClass(?class),
+    basic.ResolveInvocation(?class, ?invocation, ?callee),
+    MethodInvocation_Method(?invocation, ?sig),
+    contains("java.lang.Object get(int)", ?sig).
+
+
+//abstractList
+.decl AbstractListExecuteInArgumentToHost(?arg:Var, ?host:Value, ?category:symbol)
+.output AbstractListExecuteInArgumentToHost(IO="file",filename="AbstractListExecuteInArgumentToHost.csv",delimiter="\t")
+AbstractListExecuteInArgumentToHost(?return, ?heapValue , "Col-Value"):-
+    (AssignContextInsensitiveHeapAllocation(?heapValue, _, _);
+    AssignNormalHeapAllocation(?heapValue, _, _)),
+    Value_Type(?heapValue, ?type),
+    TaintAbstractListClass(?type),
+    AbstractListSubClassToGetMethod(?type, ?callee),
+    ReturnVar(?return, ?callee).
+
+executeInArgumentToHost(?arg, ?host, ?category):-
+    AbstractListExecuteInArgumentToHost(?arg, ?host, ?category).
+
 
 #ifdef TAMIFLEX
 //tamiflex return var

@@ -72,8 +72,6 @@
 <java.util.Collections$CheckedCollection: boolean addAll(java.util.Collection)>
 <java.util.Collections$SynchronizedCollection: boolean addAll(java.util.Collection)>
 <java.util.LinkedHashSet: void <init>(java.util.Collection)>
-<java.util.LinkedList: void <init>(java.util.Collection)>
-<java.util.LinkedList: boolean addAll(java.util.Collection)>
 <java.util.ArrayDeque: void <init>(java.util.Collection)>
 <java.util.RandomAccessSubList: void <init>(java.util.AbstractList,int,int)>
 <java.util.HashSet: void <init>(java.util.Collection)>

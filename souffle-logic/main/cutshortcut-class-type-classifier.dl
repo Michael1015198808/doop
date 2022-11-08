@@ -13,6 +13,9 @@
 .decl isVectorClass(?class:ClassType)
 // .output isVectorClass(IO="file",filename="isVectorClass.csv",delimiter="\t")
 
+.decl isAbstractListClass(?class:Type)
+.output isAbstractListClass(IO="file",filename="isAbstractListClass.csv",delimiter="\t")
+
 ContainerType(?type, ?containerType):-
     isClassType(?type),
     basic.SubtypeOf(?type, ?superclass),
@@ -24,6 +27,11 @@ ContainerType(?type, ?containerType):-
     basic.SubtypeOf(?type, ?superclass),
     ?superclass = "java.util.Collection",
     ?containerType = "COLLECTION".
+
+isAbstractListClass(?class):-
+    isClassType(?class),
+    basic.SubtypeOf(?class, ?superclass),
+    ?superclass = "java.util.AbstractList".
 
 isEnumerationClass(?class) :-
     isClassType(?class),

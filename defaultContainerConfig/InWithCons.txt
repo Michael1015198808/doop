@@ -9,3 +9,4 @@ Map-Value	<java.util.Collections$CheckedMap$CheckedEntrySet$CheckedEntry: java.l
 Map-Value	<java.util.concurrent.ConcurrentHashMap$WriteThroughEntry: java.lang.Object setValue(java.lang.Object)>	0	java.util.concurrent.ConcurrentHashMap
 Map-Value	<java.util.WeakHashMap$Entry: java.lang.Object setValue(java.lang.Object)>	0	java.util.WeakHashMap
 Col-Value	<java.util.LinkedList$ListItr: void add(java.lang.Object)>	0	java.util.LinkedList
+Col-Value	<java.util.LinkedList$Entry: void <init>(java.lang.Object,java.util.LinkedList$Entry,java.util.LinkedList$Entry)>	0	java.util.LinkedList

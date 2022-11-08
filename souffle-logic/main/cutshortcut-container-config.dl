@@ -50,6 +50,9 @@
 .input _EntrySetClass(IO="file", filename="EntrySet.txt", delimiter="\t")
 // .output _EntrySetClass(IO="file",filename="InputEntrySetClass.csv",delimiter="\t")
 
+.decl _LimitedHostClasses(?class:Type)
+.input _LimitedHostClasses(IO="file", filename="ContainerLib.txt", delimiter="\t")
+
 // start 
 .decl isHostClass(?class:Type)
 // .output isHostClass(IO="file",filename="isHostClass.csv",delimiter="\t")
@@ -98,6 +101,11 @@ KeySetOrValueSet(?keysetType, ?valueSetType):-
     _ExcludeClass(?keysetType, ?valueSetType),
     ?valueSetType != "NONE".
 
+.decl LimitedHostClasses(?class:Type)
+LimitedHostClasses(?class):-
+    _LimitedHostClasses(?class),
+    !ClassModifier("abstract", ?class).
+
 isHostClass(?class):-  
     ContainerType(?class, _),
     ! AllExcludeClass(?class).
@@ -131,8 +139,7 @@ CorrelationExtender(?inmethod, ?index0, ?index1) :-
     ?index1 = -1.
 
 CorrelationExtender(?inmethod, ?index0, ?index1) :-
-    (?inmethod = "<javax.security.auth.Subject$SecureSet: void <init>(javax.security.auth.Subject,int,java.util.Set)>";
-    ?inmethod = "<EDU.purdue.cs.bloat.util.Graph$EdgeSet: void <init>(EDU.purdue.cs.bloat.util.Graph,EDU.purdue.cs.bloat.util.GraphNode,java.util.Set)>"),
+    ?inmethod = "<javax.security.auth.Subject$SecureSet: void <init>(javax.security.auth.Subject,int,java.util.Set)>",
     ?index0 = -1,
     ?index1 = 2.
 

@@ -19,7 +19,6 @@ java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue$1
 java.util.HashMap$HashIterator
 java.util.TreeMap$NavigableSubMap$SubMapIterator
 java.util.ArrayDeque$DescendingIterator
-java.util.SubList$1
 java.util.LinkedHashMap$KeyIterator
 java.util.HashMap$KeyIterator
 java.util.EnumMap$KeyIterator
