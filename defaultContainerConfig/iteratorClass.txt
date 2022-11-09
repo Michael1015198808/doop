@@ -37,7 +37,7 @@ java.util.WeakHashMap$KeyIterator
 java.util.Collections$UnmodifiableList$1
 java.util.AbstractList$Itr
 java.util.LinkedList$DescendingIterator
-java.util.Collections$EmptySet$1
+java.util.Collections$UnmodifiableSet$1
 java.util.IdentityHashMap$ValueIterator
 java.util.LinkedHashMap$LinkedHashIterator
 javax.security.auth.Subject$SecureSet$1

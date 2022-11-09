@@ -128,17 +128,6 @@ CorrelationExtender(?inmethod, ?index0, ?index1) :-
     ?index1 = 1. 
 
 CorrelationExtender(?inmethod, ?index0, ?index1) :-
-    ?inmethod = "<java.util.Collections: void copy(java.util.List,java.util.List)>",
-    ?index0 = 0,
-    ?index1 = 1.
-
-CorrelationExtender(?inmethod, ?index0, ?index1) :-
-    (?inmethod = "<java.util.concurrent.SynchronousQueue: int drainTo(java.util.Collection)>";
-    ?inmethod = "<java.util.concurrent.SynchronousQueue: int drainTo(java.util.Collection,int)>"),
-    ?index0 = 0,
-    ?index1 = -1.
-
-CorrelationExtender(?inmethod, ?index0, ?index1) :-
     ?inmethod = "<javax.security.auth.Subject$SecureSet: void <init>(javax.security.auth.Subject,int,java.util.Set)>",
     ?index0 = -1,
     ?index1 = 2.

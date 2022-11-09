@@ -2,6 +2,7 @@
 <java.util.AbstractSequentialList: boolean addAll(int,java.util.Collection)>
 <java.util.AbstractList: boolean addAll(int,java.util.Collection)>
 <java.util.ArrayList: boolean addAll(int,java.util.Collection)>
+<java.util.LinkedList: boolean addAll(int,java.util.Collection)>
 <sun.awt.util.IdentityArrayList: boolean addAll(int,java.util.Collection)>
 <java.util.Collections$SynchronizedList: boolean addAll(int,java.util.Collection)>
 <java.util.Vector: boolean addAll(int,java.util.Collection)>

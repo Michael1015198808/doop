@@ -1,60 +1,60 @@
 //pointer's host
 .decl HostOfVar(?var:Var, ?containerKind:symbol, ?host:Value)
-//.output HostOfVar(IO="file",filename="HostOfVar.csv",delimiter="\t")
+.output HostOfVar(IO="file",filename="HostOfVar.csv",delimiter="\t")
 .decl HostOfInstanceField(?basevalue:Value, ?sig:Field, ?containerKind:symbol, ?host:Value)
-//.output HostOfInstanceField(IO="file",filename="HostOfInstanceField.csv",delimiter="\t")
+.output HostOfInstanceField(IO="file",filename="HostOfInstanceField.csv",delimiter="\t")
 .decl HostOfStaticField(?sig:Field, ?containerKind:symbol, ?host:Value)
-//.output HostOfStaticField(IO="file",filename="HostOfStaticField.csv",delimiter="\t")
+.output HostOfStaticField(IO="file",filename="HostOfStaticField.csv",delimiter="\t")
 .decl HostOfArrayIndex(?baseValue:Value, ?containerKind:symbol, ?host:Value)
-//.output HostOfArrayIndex(IO="file",filename="HostOfArrayIndex.csv",delimiter="\t")
+.output HostOfArrayIndex(IO="file",filename="HostOfArrayIndex.csv",delimiter="\t")
 
 //for main pta anslysis
 //deal with VarpointsTo:- CollectionCutshortcutAssign [type check need here]
 .decl CollectionCutshortcutAssign(?arg:Var, ?result:Var)
-//.output CollectionCutshortcutAssign(IO="file",filename="CollectionCutshortcutAssign.csv",delimiter="\t")
+.output CollectionCutshortcutAssign(IO="file",filename="CollectionCutshortcutAssign.csv",delimiter="\t")
 //isRelatedCollectionOutInvoke method call
 .decl RelatedCollectionOutMethod(?method:Method)
-//.output RelatedCollectionOutMethod(IO="file",filename="RelatedCollectionOutMethod.csv",delimiter="\t")
+.output RelatedCollectionOutMethod(IO="file",filename="RelatedCollectionOutMethod.csv",delimiter="\t")
 //return assign not passing host&kind
 .decl NotPassingReturnAssignFrom(?resutn:Var)
-//.output NotPassingReturnAssignFrom(IO="file",filename="NotPassingReturnAssignFrom.csv",delimiter="\t")
+.output NotPassingReturnAssignFrom(IO="file",filename="NotPassingReturnAssignFrom.csv",delimiter="\t")
 
 //[core rule]
 //addOutResultToHost method call
 .decl OutResultToHost(?result:Var, ?host:Value, ?category:symbol)
-//.output OutResultToHost(IO="file",filename="OutResultToHost.csv",delimiter="\t")
+.output OutResultToHost(IO="file",filename="OutResultToHost.csv",delimiter="\t")
 //executeInArgumentToHost method call
 .decl executeInArgumentToHost(?arg:Var, ?host:Value, ?category:symbol)
-//.output executeInArgumentToHost(IO="file",filename="executeInArgumentToHost.csv",delimiter="\t")
+.output executeInArgumentToHost(IO="file",filename="executeInArgumentToHost.csv",delimiter="\t")
 //inArgumentToHost method call
 .decl InArgumentToHost(?arg:Var, ?callee:Method, ?index:number, ?host:Value)
-//.output InArgumentToHost(IO="file",filename="InArgumentToHost.csv",delimiter="\t")
+.output InArgumentToHost(IO="file",filename="InArgumentToHost.csv",delimiter="\t")
 
 //correlation extenders logic
 //processCorrelationExtender method call
 .decl CorrelationExtenderNeedProcessing(?invocation:MethodInvocation, ?callee:Method)
-//.output CorrelationExtenderNeedProcessing(IO="file",filename="CorrelationExtenderNeedProcessing.csv",delimiter="\t")
+.output CorrelationExtenderNeedProcessing(IO="file",filename="CorrelationExtenderNeedProcessing.csv",delimiter="\t")
 //correlaiton extender relation of vars
 .decl ExtendCorrelation(?larger:Var, ?smaller:Var)
-//.output ExtendCorrelation(IO="file",filename="ExtendCorrelation.csv",delimiter="\t")
+.output ExtendCorrelation(IO="file",filename="ExtendCorrelation.csv",delimiter="\t")
 
 //for entrySet
 .decl EntrySetArgVar(?entrySetClass:Type, ?argVar:Var)
-//.output EntrySetArgVar(IO="file",filename="EntrySetArgVar.csv",delimiter="\t")
+.output EntrySetArgVar(IO="file",filename="EntrySetArgVar.csv",delimiter="\t")
 
 //for arrayInitializer
 .decl ArrayInitializerNeedProcessing(?invocation:MethodInvocation, ?constructor:Method, ?index0:number, ?index1:number)
-//.output ArrayInitializerNeedProcessing(IO="file",filename="ArrayInitializerNeedProcessing.csv",delimiter="\t")
+.output ArrayInitializerNeedProcessing(IO="file",filename="ArrayInitializerNeedProcessing.csv",delimiter="\t")
 .decl VirtualArrayOfArray(?vitrualArray:Var, ?array:Var)
-//.output VirtualArrayOfArray(IO="file",filename="VirtualArrayOfArray.csv",delimiter="\t")
+.output VirtualArrayOfArray(IO="file",filename="VirtualArrayOfArray.csv",delimiter="\t")
 .decl VirtualArrayOfCollectionVar(?virtualArray:Var, ?collectionVar:Var)
-//.output VirtualArrayOfCollectionVar(IO="file",filename="VirtualArrayOfCollectionVar.csv",delimiter="\t")
+.output VirtualArrayOfCollectionVar(IO="file",filename="VirtualArrayOfCollectionVar.csv",delimiter="\t")
 .decl VirtualArrayAssign(?arrayIndex:Value, ?virtualArray:Var)
-//.output VirtualArrayAssign(IO="file",filename="VirtualArrayAssign.csv",delimiter="\t")
+.output VirtualArrayAssign(IO="file",filename="VirtualArrayAssign.csv",delimiter="\t")
 
 //for ThisPropagater
 .decl CollectionThisPropagate(?base:Var, ?this:Var)
-////.output CollectionThisPropagate(IO="file",filename="CollectionThisPropagate.csv",delimiter="\t")
+//.output CollectionThisPropagate(IO="file",filename="CollectionThisPropagate.csv",delimiter="\t")
 
 .decl isHost(?host:Value)
 
@@ -192,24 +192,6 @@ HostOfVar(?to,"MAP_VALUES",?host):-
     KeySetOrValueSet(_,?type),
     ThisVar(?inmethod, ?this),
     HostOfVar(?this,"MAP_0",?host).
-//LinkedList
-HostOfVar(?to,"COL_0",?host):-
-    (AssignContextInsensitiveHeapAllocation(?heapValue, ?to, ?inmethod);
-    AssignNormalHeapAllocation(?heapValue, ?to, ?inmethod)),
-    ?inmethod = "<java.util.LinkedList: boolean addAll(int,java.util.Collection)>",
-    Value_Type(?heapValue, ?type),
-    ?type = "java.util.LinkedList$Entry",
-    ThisVar(?inmethod, ?this),
-    HostOfVar(?this,"COL_0",?host).
-
-.decl LinkedListDebug(?heapvalue:Value, ?to:Var, ?inmethod:Method)
-//.output LinkedListDebug(IO="file",filename="LinkedListDebug.csv",delimiter="\t")
-LinkedListDebug(?heapValue, ?to, ?inmethod):-
-    (AssignContextInsensitiveHeapAllocation(?heapValue, ?to, ?inmethod);
-    AssignNormalHeapAllocation(?heapValue, ?to, ?inmethod)),
-    ?inmethod = "<java.util.LinkedList: boolean addAll(int,java.util.Collection)>",
-    Value_Type(?heapValue, ?type),
-    ?type = "java.util.LinkedList$Entry".
 
 //entrySet
 VarPointsTo("<<immutable-hcontext>>", ?heapValue, "<<immutable-context>>", ?arg):-
@@ -272,7 +254,7 @@ executeInArgumentToHost(?arg, ?largerhost, "Map-Value"):-
 
 
 .decl InArgumentToHostTemp(?actual:Var, ?callee:Method, ?index:number, ?base:Var)
-//.output InArgumentToHostTemp(IO="file",filename="InArgumentToHostTemp.csv",delimiter="\t")
+.output InArgumentToHostTemp(IO="file",filename="InArgumentToHostTemp.csv",delimiter="\t")
 InArgumentToHostTemp(?actual, ?callee, ?index, ?base):-
     CallGraphEdge(_, ?invocation, _, ?callee),
     ActualParam(?index, ?invocation, ?actual),
@@ -295,10 +277,10 @@ CollectionCutshortcutAssign(?arg, ?result) :-
     OutResultToHost(?result, ?host, ?category).
 
 .decl OutResultToHostTemp(?result:Var, ?base:Var, ?category:symbol)//optimize
-//.output OutResultToHostTemp(IO="file",filename="OutResultToHostTemp.csv",delimiter="\t")
+.output OutResultToHostTemp(IO="file",filename="OutResultToHostTemp.csv",delimiter="\t")
 
 .decl HostOfBaseTypeCheck(?host:Value, ?base:Var)
-//.output HostOfBaseTypeCheck(IO="file",filename="HostOfBaseTypeCheck.csv",delimiter="\t")
+.output HostOfBaseTypeCheck(IO="file",filename="HostOfBaseTypeCheck.csv",delimiter="\t")
 
 OutResultToHost(?result, ?host, ?category) :-  
     OutResultToHostTemp(?result, ?base, ?category),
@@ -318,19 +300,19 @@ HostOfBaseTypeCheck(?host, ?base):-
 
 //optimize purpose
 .decl OutResultHostTempOpt1(?result:Var, ?base:Var)
-//.output OutResultHostTempOpt1(IO="file",filename="OutResultHostTempOpt1.csv",delimiter="\t")
+.output OutResultHostTempOpt1(IO="file",filename="OutResultHostTempOpt1.csv",delimiter="\t")
 
 .decl OutResultHostTempOpt2(?result:Var, ?base:Var)
-//.output OutResultHostTempOpt2(IO="file",filename="OutResultHostTempOpt2.csv",delimiter="\t")
+.output OutResultHostTempOpt2(IO="file",filename="OutResultHostTempOpt2.csv",delimiter="\t")
 
 .decl OutResultHostTempOpt3(?result:Var, ?base:Var)
-//.output OutResultHostTempOpt3(IO="file",filename="OutResultHostTempOpt3.csv",delimiter="\t")
+.output OutResultHostTempOpt3(IO="file",filename="OutResultHostTempOpt3.csv",delimiter="\t")
 
 .decl OutResultHostTempOpt4(?result:Var, ?base:Var)
-//.output OutResultHostTempOpt4(IO="file",filename="OutResultHostTempOpt4.csv",delimiter="\t")
+.output OutResultHostTempOpt4(IO="file",filename="OutResultHostTempOpt4.csv",delimiter="\t")
 
 .decl OutResultHostTempOpt5(?result:Var, ?base:Var)
-//.output OutResultHostTempOpt5(IO="file",filename="OutResultHostTempOpt5.csv",delimiter="\t")
+.output OutResultHostTempOpt5(IO="file",filename="OutResultHostTempOpt5.csv",delimiter="\t")
 
 OutResultHostTempOpt1(?result, ?base) :-
     CallGraphEdge(_, ?invocation, _, ?callee),
@@ -420,7 +402,7 @@ CollectionVarPointsToTemp(?arg, ?result, ?allowedType):-
 NotPassingReturnAssignFrom(?return):-
     ReturnVar(?return, ?method),
     Method_DeclaringType(?method, ?classType),
-    isHostClass(?classType),
+    LimitedHostClasses(?classType),
     isHashtableClass(?classType),
     (contains("elements()",?method);
     contains("keys()", ?method)).
@@ -428,14 +410,14 @@ NotPassingReturnAssignFrom(?return):-
 NotPassingReturnAssignFrom(?return):-
     ReturnVar(?return, ?method),
     Method_DeclaringType(?method, ?classType),
-    isHostClass(?classType),
+    LimitedHostClasses(?classType),
     isVectorClass(?classType),
     contains("elements()", ?method).
     
 NotPassingReturnAssignFrom(?return):-
     ReturnVar(?return, ?method),
     Method_DeclaringType(?method, ?classType),
-    isHostClass(?classType),
+    LimitedHostClasses(?classType),
     (contains("iterator(",?method);
     contains("entrySet()",?method);
     contains("keySet()",?method);
@@ -474,7 +456,7 @@ RelatedCollectionOutMethodB(?method):-
     HostClassInnerClass(?classType).
 
 .decl TaingTypeTemp(?class:Type)
-//.output TaingTypeTemp(IO="file",filename="TaingTypeTemp.csv",delimiter="\t")
+.output TaingTypeTemp(IO="file",filename="TaingTypeTemp.csv",delimiter="\t")
 TaingTypeTemp(?class):-
     ContainerType(?class, _),
     isClassType(?class),
@@ -483,21 +465,21 @@ TaingTypeTemp(?class):-
     !AllExcludeClass(?class).
 
 .decl TaintContainerType(?class:Type)
-//.output TaintContainerType(IO="file",filename="TaintContainerType.csv",delimiter="\t")
+.output TaintContainerType(IO="file",filename="TaintContainerType.csv",delimiter="\t")
 
 TaintContainerType(?class):-
     TaingTypeTemp(?class),
     !isAbstractListClass(?class).
 
 .decl TaintAbstractListClass(?class:Type)
-//.output TaintAbstractListClass(IO="file",filename="TaintAbstractListClass.csv",delimiter="\t")
+.output TaintAbstractListClass(IO="file",filename="TaintAbstractListClass.csv",delimiter="\t")
 TaintAbstractListClass(?class):-
     TaingTypeTemp(?class),
     isAbstractListClass(?class).
 
 
 .decl TaintHost(?host:Value)
-//.output TaintHost(IO="file",filename="TaintHost.csv",delimiter="\t")
+.output TaintHost(IO="file",filename="TaintHost.csv",delimiter="\t")
 
 TaintHost(?host):-
     CallGraphEdge(_, ?invocation,_,?callee),
@@ -520,7 +502,7 @@ TaintHost(?bigHost):-
     !TaintAbstractListClass(?valuetype).
 
 .decl TaintHostOutAssignA(?actualret:Var, ?return:Var)
-//.output TaintHostOutAssignA(IO="file",filename="TaintHostOutAssignA.csv",delimiter="\t")
+.output TaintHostOutAssignA(IO="file",filename="TaintHostOutAssignA.csv",delimiter="\t")
 
 TaintHostOutAssignA(?result, ?return):-
   CallGraphEdge(_, ?invocation, _, ?method),
@@ -537,7 +519,7 @@ CollectionCutshortcutAssign(?return, ?result):-
 
 
 .decl AbstractListSubClassToGetMethod(?class:Type, ?method:Method)
-//.output AbstractListSubClassToGetMethod(IO="file",filename="AbstractListSubClassToGetMethod.csv",delimiter="\t")
+.output AbstractListSubClassToGetMethod(IO="file",filename="AbstractListSubClassToGetMethod.csv",delimiter="\t")
 AbstractListSubClassToGetMethod(?class, ?callee):-
     TaintAbstractListClass(?class),
     basic.ResolveInvocation(?class, ?invocation, ?callee),
@@ -547,10 +529,10 @@ AbstractListSubClassToGetMethod(?class, ?callee):-
 
 //abstractList
 .decl AbstractListExecuteInArgumentToHost(?arg:Var, ?host:Value, ?category:symbol)
-//.output AbstractListExecuteInArgumentToHost(IO="file",filename="AbstractListExecuteInArgumentToHost.csv",delimiter="\t")
+.output AbstractListExecuteInArgumentToHost(IO="file",filename="AbstractListExecuteInArgumentToHost.csv",delimiter="\t")
 AbstractListExecuteInArgumentToHost(?return, ?heapValue , "Col-Value"):-
     (AssignContextInsensitiveHeapAllocation(?heapValue, _, _);
-    AssignNormalHeapAllocation(?heapValue, _, _)),
+    AssignNormalHeapAllocation(?heapValue, _,  _)),
     Value_Type(?heapValue, ?type),
     TaintAbstractListClass(?type),
     AbstractListSubClassToGetMethod(?type, ?callee),
@@ -624,7 +606,7 @@ HostOfVar(?result, ?generatedKind, ?host):-
 
 //array initializer
 .decl ArrayInitializerNeedProcessingTamiflex(?invocation:MethodInvocation, ?constructor:Method, ?index0:number, ?index1:number)
-//.output ArrayInitializerNeedProcessingTamiflex(IO="file",filename="ArrayInitializerNeedProcessingTamiflex.csv",delimiter="\t")
+.output ArrayInitializerNeedProcessingTamiflex(IO="file",filename="ArrayInitializerNeedProcessingTamiflex.csv",delimiter="\t")
 
 ArrayInitializerNeedProcessingTamiflex(?invocation, ?methodSignature, ?index0, ?index1):-
     Tamiflex_Invoke_Simple(?invocation, ?methodSignature),
@@ -676,7 +658,7 @@ PlusVar(?var, ?caller, ?elementType):-
 
 //correlation extender
 .decl CorrelationExtenderNeedProcessingTamiflex(?invocation:MethodInvocation, ?callee:Method)
-//.output CorrelationExtenderNeedProcessingTamiflex(IO="file",filename="CorrelationExtenderNeedProcessingTamiflex.csv",delimiter="\t")
+.output CorrelationExtenderNeedProcessingTamiflex(IO="file",filename="CorrelationExtenderNeedProcessingTamiflex.csv",delimiter="\t")
 CorrelationExtenderNeedProcessingTamiflex(?invocation, ?callee):-
     TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
     CorrelationExtender(?callee, _, _).
@@ -704,7 +686,7 @@ ExtendCorrelation(?arg1, ?arg1):-
 
 //in argument to host
 .decl InArgumentToHostTamiflexTemp(?actual:Var, ?callee:Method, ?base:Var)
-//.output InArgumentToHostTamiflexTemp(IO="file",filename="InArgumentToHostTamiflexTemp.csv",delimiter="\t")
+.output InArgumentToHostTamiflexTemp(IO="file",filename="InArgumentToHostTamiflexTemp.csv",delimiter="\t")
 InArgumentToHostTamiflexTemp(?actual, ?callee, ?base):-
     TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
     TamiflexInvocationActualParam(?invocation, ?actual),
