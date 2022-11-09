@@ -9,9 +9,12 @@
 <java.util.EnumMap: void <init>(java.util.Map)>
 <java.util.EnumMap: void <init>(java.util.EnumMap)>
 <java.util.WeakHashMap: void <init>(java.util.Map)>
+<java.awt.RenderingHints: void <init>(java.util.Map)>
 <java.util.Hashtable: void <init>(java.util.Map)>
 <java.util.Properties: void <init>(java.util.Properties)>
+<java.lang.ProcessEnvironment$StringEnvironment: void <init>(java.util.Map)>
 <java.util.concurrent.ConcurrentHashMap: void <init>(java.util.Map)>
+<java.security.Provider: void putAll(java.util.Map)>
 <java.util.AbstractMap: void putAll(java.util.Map)>
 <java.util.jar.Attributes: void putAll(java.util.Map)>
 <java.util.Collections$SynchronizedMap: void putAll(java.util.Map)>
@@ -25,6 +28,7 @@
 <java.util.Collections$CheckedSortedMap: void <init>(java.util.SortedMap,java.lang.Class,java.lang.Class)>
 <java.util.EnumMap: void putAll(java.util.Map)>
 <java.util.WeakHashMap: void putAll(java.util.Map)>
+<java.awt.RenderingHints: void putAll(java.util.Map)>
 <java.util.Hashtable: void putAll(java.util.Map)>
 <java.util.concurrent.ConcurrentHashMap: void putAll(java.util.Map)>
 <java.util.PriorityQueue: void <init>(java.util.Collection)>
@@ -32,6 +36,8 @@
 <java.util.PriorityQueue: void <init>(java.util.SortedSet)>
 <java.util.concurrent.ConcurrentLinkedQueue: void <init>(java.util.Collection)>
 <java.util.concurrent.ConcurrentLinkedQueue: boolean addAll(java.util.Collection)>
+<sun.awt.util.IdentityArrayList: void <init>(java.util.Collection)>
+<sun.awt.util.IdentityArrayList: boolean addAll(java.util.Collection)>
 <java.util.SubList: void <init>(java.util.AbstractList,int,int)>
 <java.util.SubList: boolean addAll(java.util.Collection)>
 <java.util.SubList: int access$000(java.util.SubList)>
@@ -84,6 +90,8 @@
 <java.util.ArrayList: boolean addAll(java.util.Collection)>
 <java.util.concurrent.LinkedBlockingQueue: void <init>(java.util.Collection)>
 <java.util.concurrent.DelayQueue: void <init>(java.util.Collection)>
+<sun.awt.util.IdentityArrayList: void <init>(java.util.Collection)>
+<sun.awt.util.IdentityArrayList: boolean addAll(java.util.Collection)>
 <java.util.concurrent.PriorityBlockingQueue: void <init>(java.util.Collection)>
 <java.util.concurrent.LinkedBlockingDeque: void <init>(java.util.Collection)>
 <java.util.concurrent.ConcurrentSkipListSet: void <init>(java.util.Collection)>

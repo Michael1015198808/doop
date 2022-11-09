@@ -10,3 +10,10 @@ Map-Value	<java.util.concurrent.ConcurrentHashMap$WriteThroughEntry: java.lang.O
 Map-Value	<java.util.WeakHashMap$Entry: java.lang.Object setValue(java.lang.Object)>	0	java.util.WeakHashMap
 Col-Value	<java.util.LinkedList$ListItr: void add(java.lang.Object)>	0	java.util.LinkedList
 Col-Value	<java.util.LinkedList$Entry: void <init>(java.lang.Object,java.util.LinkedList$Entry,java.util.LinkedList$Entry)>	0	java.util.LinkedList
+Map-Value	<java.text.AttributeEntry: void <init>(java.text.AttributedCharacterIterator$Attribute,java.lang.Object)>	1	java.text.AttributedString$AttributeMap
+Map-Key	<java.text.AttributeEntry: void <init>(java.text.AttributedCharacterIterator$Attribute,java.lang.Object)>	0	java.text.AttributedString$AttributeMap
+Map-Value	<java.text.AttributeEntry: java.lang.Object setValue(java.lang.Object)>	0	java.text.AttributedString$AttributeMap
+Map-Value	<java.lang.ProcessEnvironment$StringEntrySet$2: java.lang.Object setValue(java.lang.Object)>	0	java.lang.ProcessEnvironment
+Map-Value	<sun.util.PreHashedMap$2$1$1: java.lang.Object setValue(java.lang.Object)>	0	sun.util.PreHashedMap
+Map-Value	<java.lang.ProcessEnvironment$StringEntry: java.lang.Object setValue(java.lang.Object)>	0	java.lang.ProcessEnvironment
+Map-Value	<sun.misc.SoftCache$Entry: java.lang.Object setValue(java.lang.Object)>	0	sun.misc.SoftCache

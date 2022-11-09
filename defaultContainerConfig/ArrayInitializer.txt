@@ -1,3 +1,4 @@
 <java.util.Arrays$ArrayList: void <init>(java.lang.Object[])>	0	-1
 <java.util.Collections: boolean addAll(java.util.Collection,java.lang.Object[])>	1	0
 <java.util.concurrent.CopyOnWriteArrayList: void <init>(java.lang.Object[])>	0	-1
+<sun.awt.X11.XCreateWindowParams: void <init>(java.lang.Object[])>	0	-1

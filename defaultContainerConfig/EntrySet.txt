@@ -11,3 +11,6 @@ java.util.IdentityHashMap$EntrySet	java.util.IdentityHashMap
 java.util.HashMap$EntrySet	java.util.HashMap
 java.util.concurrent.ConcurrentHashMap$EntrySet	java.util.concurrent.ConcurrentHashMap$EntryIterator
 java.util.concurrent.ConcurrentSkipListMap$EntrySet	java.util.concurrent.ConcurrentSkipListMap
+sun.misc.SoftCache$EntrySet	sun.misc.SoftCache
+java.lang.ProcessEnvironment$StringEntrySet	java.lang.ProcessEnvironment$StringEntrySet
+javax.print.MimeType$ParameterMapEntrySet	javax.print.MimeType

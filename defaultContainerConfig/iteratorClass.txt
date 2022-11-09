@@ -40,6 +40,7 @@ java.util.LinkedList$DescendingIterator
 java.util.Collections$EmptySet$1
 java.util.IdentityHashMap$ValueIterator
 java.util.LinkedHashMap$LinkedHashIterator
+javax.security.auth.Subject$SecureSet$1
 java.util.TreeMap$NavigableSubMap$SubMapEntryIterator
 java.util.WeakHashMap$ValueIterator
 java.util.Hashtable$Enumerator
