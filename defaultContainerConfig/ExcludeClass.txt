@@ -1,0 +1,13 @@
+java.util.HashMap$KeySet	java.util.HashMap$Values
+java.util.concurrent.ConcurrentHashMap$KeySet	java.util.concurrent.ConcurrentHashMap$Values
+java.util.Hashtable$KeySet	java.util.Hashtable$ValueCollection
+java.util.WeakHashMap$KeySet	java.util.WeakHashMap$Values
+java.util.IdentityHashMap$KeySet	java.util.IdentityHashMap$Values
+java.util.TreeMap$KeySet	java.util.TreeMap$Values
+java.util.EnumMap$KeySet	java.util.EnumMap$Values
+java.util.AbstractMap$1	java.util.AbstractMap$2
+java.util.Collections$SetFromMap	NONE
+java.lang.ProcessEnvironment$StringKeySet	java.lang.ProcessEnvironment$StringValues
+sun.nio.ch.Util$2	NONE
+sun.util.PreHashedMap$1	sun.util.PreHashedMap$2	NONE
+javax.print.attribute.standard.PrinterStateReasons$PrinterStateReasonSet	NONE

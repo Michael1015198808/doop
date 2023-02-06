@@ -111,6 +111,7 @@ VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
 HostOfVar(?to, ?kind, ?host) :-
   OptAssignCast(_, ?to, ?from),
   HostOfVar(?from, ?kind, ?host).
+  .plan 1:(1,2)
 #endif
 VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   OptAssignCast(?type, ?to, ?from),
@@ -175,6 +176,7 @@ VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
 HostOfInstanceField(?basevalue, ?sig, ?kind, ?host):-
   StoreHeapInstanceField(?sig, _, ?basevalue, _, ?from),
   HostOfVar(?from, ?kind, ?host).
+  .plan 1:(1,2)
 #endif //CUTSHORTCUT && CONTAINER
 InstanceFieldPointsTo(?hctx, ?value, ?signature, ?basehctx, ?basevalue) :-
   StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?ctx, ?from),
@@ -621,6 +623,7 @@ HostOfVar(?to, ?kind, ?host):-
   OptReturnAssign(_, ?to, _, ?from),
   HostOfVar(?from, ?kind, ?host),
   !NotPassingReturnAssignFrom(?from).
+  .plan 1:(1,2)
 #endif //CUTSHORTCUT && CONTAINER
 
 VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
@@ -670,6 +673,7 @@ VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
 HostOfVar(?to, ?kind, ?host):-
   OptArgAssign(_, ?to, _, ?from, _),
   HostOfVar(?from, ?kind, ?host).
+  .plan 1:(1,2)
 #endif //CUTSHORTCUT && CONTAINER
 
 VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-

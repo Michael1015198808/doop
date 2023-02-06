@@ -125,6 +125,7 @@ AbstractInstanceFieldPointsToTemp(?from, ?basehctx, ?basevalue, ?sig, ?fromAllow
 HostOfInstanceField(?basevalue, ?sig, ?kind, ?host):-
     HostOfInstanceFieldTemp(?from, ?basevalue, ?sig),
     HostOfVar(?from, ?kind, ?host).
+    .plan 1:(2,1)
 HostOfInstanceFieldTemp(?from, ?basevalue, ?sig):-
     AbstractInstanceStore(?from, ?base, ?sig, _, _, _),
     VarPointsTo(_, ?basevalue, _, ?base).

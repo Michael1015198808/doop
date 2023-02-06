@@ -2,8 +2,8 @@
 import os
 import sys
 
-DACAPOAPP = ['bloat', 'xalan', 'hsqldb', 'eclipse', 'jython']
-ALLAPP = ['bloat', 'xalan', 'hsqldb', 'eclipse', 'jython',
+DACAPOAPP = ['bloat', 'xalan', 'hsqldb', 'eclipse', 'jython', 'pmd']
+ALLAPP = ['bloat', 'xalan', 'hsqldb', 'eclipse', 'jython', 'pmd',
          'findbugs', 'soot', 'gruntspud', 'columba', 'jedit', 'freecol', 'briss']
 ANALYSIS = ['context-insensitive', '2-object-sensitive+heap', '2-type-sensitive+heap', 'zipper-e', 'cut-shortcut', '1-type-sensitive', '1-object-sensitive', 'collection-3obj']
 
@@ -79,9 +79,9 @@ def runDoop(app, analyse):
     print YELLOW + BOLD + 'Running ' + analyse+ ' for '+app+"...."+RESET
     print cmd
     os.system(cmd)
-#    clearcmd = 'rm -rf out'
-#    os.system(clearcmd)
-#    print clearcmd
+    clearcmd = 'rm -rf out'
+    os.system(clearcmd)
+    print clearcmd
     if analyse  == 'zipper-e':
         pass
         clearcmd = 'rm -rf zipper/cache'
