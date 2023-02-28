@@ -2,10 +2,10 @@
 import os
 import sys
 
-DACAPOAPP = ['bloat', 'xalan', 'hsqldb', 'eclipse', 'jython', 'pmd']
-ALLAPP = ['bloat', 'xalan', 'hsqldb', 'eclipse', 'jython', 'pmd',
+DACAPOAPP = ['hsqldb', 'eclipse', 'jython']
+ALLAPP = ['hsqldb', 'eclipse', 'jython',
          'findbugs', 'soot', 'gruntspud', 'columba', 'jedit', 'freecol', 'briss']
-ANALYSIS = ['context-insensitive', '2-object-sensitive+heap', '2-type-sensitive+heap', 'zipper-e', 'cut-shortcut', '1-type-sensitive', '1-object-sensitive', 'collection-3obj']
+ANALYSIS = ['context-insensitive', '2-object-sensitive+heap', '2-type-sensitive+heap', 'zipper-e', 'cut-shortcut']
 
 APPINPUT = {
     'findbugs' : 'benchmarks/findbugs/3.0/lib/findbugs.jar benchmarks/findbugs/3.0/plugin/coreplugin.jar',
@@ -46,6 +46,10 @@ APPMAIN = {
     'briss' : 'at.laborg.briss.Briss',
 }
 
+ALL = "all"
+ALL_ANA = "all-analysis"
+ALL_BEN = "all-benchmark"
+
 DOOPHOME = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -60,7 +64,7 @@ def runDoop(app, analyse):
     os.environ['DOOP_PLATFORMS_LIB'] = os.path.join(DOOPHOME, 'benchmarks')
     cmd = ''
     if analyse  == 'zipper-e':
-        cmd = cmd + 'python bin/zippere.py -a 2-object-sensitive+heap'
+        cmd = cmd + 'python bin/zippere.py -z ' + app + ' -a 2-object-sensitive+heap'
     else :    
         cmd = cmd +"./doop -a "+analyse
     if app in DACAPOAPP:
@@ -68,7 +72,7 @@ def runDoop(app, analyse):
         cmd = cmd + ' --dacapo'
     else:
         cmd = cmd + ' -i '+APPINPUT[app]
-        if APPLIB.has_key(app):
+        if app in APPLIB:
             cmd = cmd + ' -l '+APPLIB[app]
         cmd = cmd + ' --tamiflex '+APPTAMIFLEX[app]
         cmd = cmd + ' --main '+APPMAIN[app]
@@ -76,31 +80,42 @@ def runDoop(app, analyse):
     cmd = cmd + ' --cs-library'
     cmd = cmd + ' --no-merge-library-objects'
     cmd = cmd + ' --Xno-ssa'
-    print YELLOW + BOLD + 'Running ' + analyse+ ' for '+app+"...."+RESET
-    print cmd
+    print(YELLOW + BOLD + 'Running ' + analyse+ ' for '+app+"...."+RESET)
+    print(cmd)
     os.system(cmd)
-    clearcmd = 'rm -rf out'
-    os.system(clearcmd)
-    print clearcmd
+    # clearcmd = 'rm -rf out'
+    # os.system(clearcmd)
+    # print(clearcmd)
     if analyse  == 'zipper-e':
         pass
         clearcmd = 'rm -rf zipper/cache'
         os.system(clearcmd)
-        print clearcmd
-        clearcmd = 'rm -rf zipper/out'
+        print(clearcmd)
+        # clearcmd = 'rm -rf zipper/out'
         os.system(clearcmd)
-        print clearcmd
+        print(clearcmd)
 
 def run(args):
     apps = []
     analyses = []
     for arg in args:
-        if arg in ALLAPP:
+        if arg == ALL:
+            for item in ANALYSIS:
+                analyses.append(item)
+            for item in ALLAPP:
+                apps.append(item)
+        elif arg == ALL_ANA:
+            for item in ANALYSIS:
+                analyses.append(item)
+        elif arg == ALL_BEN:
+            for item in ALLAPP:
+                apps.append(item)
+        elif arg in ALLAPP:
             apps.append(arg)
         elif arg in ANALYSIS:
             analyses.append(arg)
         else:
-            print 'wrong input'
+            print('wrong input')
             sys.exit()
     for app in apps:
         for analyse in analyses:

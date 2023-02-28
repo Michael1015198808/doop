@@ -42,15 +42,15 @@ public class BasicJavaSupport {
      */
     public void preprocessInputs(Database db, Set<String> tmpDirs) throws IOException {
         for (String filename : parameters.getInputs()) {
-            System.out.println("Preprocessing application: " + filename);
+            //System.out.println("Preprocessing application: " + filename);
             preprocessInput(db, tmpDirs, classesInApplicationJars, filename);
         }
         for (String filename : parameters.getPlatformLibs()) {
-            System.out.println("Preprocessing platform library: " + filename);
+            //System.out.println("Preprocessing platform library: " + filename);
             preprocessInput(db, tmpDirs, classesInLibraryJars, filename);
         }
         for (String filename : parameters.getDependencies()) {
-            System.out.println("Preprocessing dependency: " + filename);
+            //System.out.println("Preprocessing dependency: " + filename);
             preprocessInput(db, tmpDirs, classesInDependencyJars, filename);
         }
     }

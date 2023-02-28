@@ -40,6 +40,7 @@ VarPointsTo("<<immutable-hcontext>>", ?value, "<<immutable-context>>", ?result):
     SpecialMethodIdendityThisPassingTemp(?result, ?base),
     VarPointsTo(_, ?value, _, ?base).
 
+// InvolvedMethod(?method),
 SpecialHandledReturnVar(?return),
 DirectlyReturnParams(?method, ?index):-
     ReturnVar(?return, ?method),

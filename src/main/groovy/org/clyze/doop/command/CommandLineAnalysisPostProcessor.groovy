@@ -53,8 +53,16 @@ class CommandLineAnalysisPostProcessor implements AnalysisPostProcessor<DoopAnal
 			}
 
 			log.info "-- Statistics --"
+			//lines.sort()*.split(", ").each {
+			//	printf("%-80s %,d\n", it[1], it[2] as long)
+			//}
+			def highlight = ["polymorphic virtual call sites", "reachable methods", "reachable casts that may fail", "call graph edges"]
 			lines.sort()*.split(", ").each {
-				printf("%-80s %,d\n", it[1], it[2] as long)
+				if(it[1] as String in highlight){
+					printf("\033[33m"+"\033[1m"+"%-80s %,d\n"+"\033[0m", it[1], it[2] as long)
+				}else{
+					printf("%-80s %,d\n", it[1], it[2] as long)
+				}
 			}
 		}
 	}

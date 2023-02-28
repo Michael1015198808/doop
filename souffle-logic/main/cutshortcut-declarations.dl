@@ -22,6 +22,16 @@
 #include "cutshortcut-load.dl"
 #endif
 
+// .decl ReachableInvolvedMethod(?method:Method)
+// .output ReachableInvolvedMethod(IO="file",filename="ReachableInvolvedMethod.csv",delimiter="\t")
+
+// ReachableInvolvedMethod(?method):-
+    // Reachable(?method),
+    // InvolvedMethod(?method).
+
+// .decl InvolvedMethod(?method:Method)
+// .output InvolvedMethod(IO="file",filename="InvolvedMethod.csv",delimiter="\t")
+
 .decl LocalThisVar(?inmethod:Method, ?base:Var)
 .input LocalThisVar(filename="ThisLocal.facts")
 // .output LocalThisVar(IO="file",filename="LocalThisVar.csv",delimiter="\t")

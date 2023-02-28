@@ -41,7 +41,7 @@ def runPreAnalysis(initArgs):
     args = args + ['-a', PRE_ANALYSIS]
     args = args + ['--Xzipper-pre']
     cmd = ' '.join(args)
-    print YELLOW + BOLD + 'Running pre-analysis ...' + RESET
+    print (YELLOW + BOLD + 'Running pre-analysis ...' + RESET)
     #print cmd
     os.system(cmd)
 
@@ -68,7 +68,7 @@ def dumpRequiredDoopResults(app, db_dir, dump_dir):
             os.mkdir(dump_dir)
         shutil.copyfile(from_path, dump_path)
     
-    print 'Dumping doop analysis results %s ...' % app
+    print ('Dumping doop analysis results %s ...' % app)
     for query in REQUIRED_INPUT:
         dumpDoopResults(db_dir, dump_dir, app, query)
 
@@ -94,7 +94,7 @@ def runMainAnalysis(args, zipper_file):
     args = [DOOP] + args
     args = args + ['--Xzipper', zipper_file]
     cmd = ' '.join(args)
-    print YELLOW + BOLD + 'Running main (Zipper-guided) analysis ...' + RESET
+    print (YELLOW + BOLD + 'Running main (Zipper-guided) analysis ...' + RESET)
     #print cmd
     os.system(cmd)
 
@@ -102,8 +102,10 @@ def run(args):
     runPreAnalysis(args)
     dumpRequiredDoopResults(APP, DATABASE, ZIPPER_CACHE)
     zipper_file = runZipper(APP, ZIPPER_CACHE, ZIPPER_OUT)
-    runMainAnalysis(args, zipper_file)
+    # runMainAnalysis(args, zipper_file)
 
 if __name__ == '__main__':
-    run(sys.argv[1:])
+    APP = sys.argv[2]
+    run(sys.argv[3:])
+
 

@@ -80,7 +80,7 @@ public class Main {
             Options.v().set_via_shimple(true);
             Options.v().set_output_format(Options.output_format_shimple);
         } else {
-            logWarn(logger, "WARNING: SSA not enabled, generating Jimple instead of Shimple");
+            logWarn(logger, "SSA not enabled, generating Jimple instead of Shimple");
             Options.v().set_output_format(Options.output_format_jimple);
         }
 
@@ -143,7 +143,7 @@ public class Main {
             if (sootParameters._generateJimple)
                 generateIR(java, scene, sootData.classes, sootData.driver, outDir);
 
-            System.err.println("Methods without active bodies encountered (and reset): " + FactGenerator.methodsWithoutActiveBodies.get());
+            //System.err.println("Methods without active bodies encountered (and reset): " + FactGenerator.methodsWithoutActiveBodies.get());
 
             if (sootParameters._lowMem) {
                 System.out.println("Releasing Soot structures...");
@@ -183,7 +183,7 @@ public class Main {
         }
 
         for (String lib : sootParameters.getDependenciesAndPlatformLibs()) {
-            System.out.println("Adding archive for resolving: " + lib);
+            //System.out.println("Adding archive for resolving: " + lib);
             addToSootClassPath(scene, lib);
         }
 
@@ -313,8 +313,8 @@ public class Main {
                                 }});
                     }
                     logError(logger, "ERROR: some classes were not resolved (see " + outFile + "), restarting fact generation: " + Arrays.toString(unrecorded.toArray()));
-                } else
-                    logWarn(logger, "WARNING: some classes were not resolved, consider using thorough fact generation or adding them manually via --also-resolve: " + Arrays.toString(unrecorded.toArray()));
+                } else {}
+                    //logWarn(logger, "WARNING: some classes were not resolved, consider using thorough fact generation or adding them manually via --also-resolve: " + Arrays.toString(unrecorded.toArray()));
             }
 
             writer.writeLastFacts(java);

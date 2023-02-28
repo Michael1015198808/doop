@@ -50,6 +50,7 @@ ReachableMethodFromOtherSource(?signature) :-
 // instance field store need to be ignored (without passing pts from var ?from to baseObj's field)
 // base.sig = from
 // both base and from are inmethod's formal param(or thisVar)
+//InvolvedMethod(?inmethod),
 IgnoredInstanceFieldStore(?from, ?base, ?sig, ?inmethod) :- 
     StoreInstanceField(?from, ?base, ?sig, ?inmethod),
     FormalParamNotRedefinedExceptForSpecialDefine(?inmethod, ?base, _),
@@ -81,6 +82,7 @@ AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?bas
     AbstractStoreCandidateTemp(?newfrom, ?newbase, ?caller, ?callee, ?baseindex, ?fromindex),
     AbstractStoreCandidateTemp2(?fromindex, ?baseindex, ?callee, ?sig, ?fromAllowedType, ?baseAllowedType).
 
+// InvolvedMethod(?callee),
 AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?baseAllowedType) :-
     AbstractStoreCandidate(?from, ?base, ?sig, ?callee, ?fromAllowedType, ?baseAllowedType),
     CallGraphEdge(_, ?invocation, _, ?callee),
@@ -89,6 +91,7 @@ AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?bas
     InvocationActualParamAndBase(?baseindex, ?invocation, ?newbase),
     FormalParamNotRedefinedExceptForSpecialDefine(?callee, ?from, ?fromindex),
     InvocationActualParamAndBase(?fromindex, ?invocation, ?newfrom).
+
 
 AbstractInstanceStore(?from, ?base, ?sig, ?inmethod, ?fromAllowedType, ?baseAllowedType) :-
     AbstractStoreCandidate(?from, ?base, ?sig, ?inmethod, ?fromAllowedType, ?baseAllowedType),
@@ -99,6 +102,7 @@ AbstractInstanceStore(?from, ?base, ?sig, ?inmethod, ?fromAllowedType, ?baseAllo
 AbstractInstanceStore(?from, ?base, ?sig, ?inmethod, ?fromAllowedType, ?baseAllowedType) :-
     AbstractStoreCandidate(?from, ?base, ?sig, ?inmethod, ?fromAllowedType, ?baseAllowedType),
     ReachableMethodFromOtherSource(?inmethod).
+    
 
 .decl AbstractInstanceFieldPointsToTemp(?from:Var, ?basehctx:configuration.HContext, ?basevalue:Value, ?sig:Field, ?fromAllowedType:Type)
 //.output AbstractInstanceFieldPointsToTemp(IO="file",filename="AbstractInstanceFieldPointsToTemp.csv",delimiter="\t")
@@ -115,7 +119,10 @@ AbstractInstanceFieldPointsToTemp(?from, ?basehctx, ?basevalue, ?sig, ?fromAllow
     VarPointsTo(?basehctx, ?basevalue, _, ?base),
     !Value_Null(?basevalue),
     Value_Type(?basevalue, ?basevaluetype),
-    basic.SubtypeOf(?basevaluetype, ?baseAllowedType).
+    basic.SubtypeOf(?basevaluetype, ?baseAllowedType),
+    Field_DeclaringType(?sig, ?declaringClass),
+    basic.SubtypeOf(?basevaluetype, ?declaringClass).
+    
 
 //optimize this rule
 .decl HostOfInstanceFieldTemp(?from:Var, ?basevalue:Value, ?sig:Field)
@@ -187,6 +194,7 @@ AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?bas
 
 //temp->temp
 
+// InvolvedMethod(?callee),
 AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?baseAllowedType) :-
     AbstractStoreCandidate(?from, ?base, ?sig, ?callee, ?fromAllowedType, ?baseAllowedType),
     TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
@@ -196,6 +204,7 @@ AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?bas
     FormalParamNotRedefinedExceptForSpecialDefine(?callee, ?from, -1),
     TamiflexInvocationBase(?invocation, ?newfrom).
 
+// InvolvedMethod(?callee),
 AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?baseAllowedType) :-
     AbstractStoreCandidate(?from, ?base, ?sig, ?callee, ?fromAllowedType, ?baseAllowedType),
     TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
@@ -206,6 +215,7 @@ AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?bas
     FormalParamNotRedefinedExceptForSpecialDefine(?callee, ?from, -1),
     TamiflexInvocationBase(?invocation, ?newfrom).
 
+// InvolvedMethod(?callee),
 AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?baseAllowedType) :-
     AbstractStoreCandidate(?from, ?base, ?sig, ?callee, ?fromAllowedType, ?baseAllowedType),
     TamiflexCallGraphEdge(_, ?invocation, _, ?callee),
@@ -216,6 +226,7 @@ AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?bas
     ?fromindex != -1,
     TamiflexInvocationActualParam(?invocation, ?newfrom).
 
+// InvolvedMethod(?callee),
 AbstractStoreCandidate(?newfrom, ?newbase, ?sig, ?caller, ?fromAllowedType, ?baseAllowedType) :-
     AbstractStoreCandidate(?from, ?base, ?sig, ?callee, ?fromAllowedType, ?baseAllowedType),
     TamiflexCallGraphEdge(_, ?invocation, _, ?callee),

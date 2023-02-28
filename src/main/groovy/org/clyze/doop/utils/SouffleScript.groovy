@@ -128,7 +128,7 @@ class SouffleScript {
 					if (ignoreCounter != 0) ignoreCounter--
 					else if (line.startsWith("Warning: No rules/facts defined for relation") ||
 							line.startsWith("Warning: Deprecated output qualifier was used")) {
-						log.info line
+						//log.info line
 						ignoreCounter = 2
 					} else if (line.startsWith("Warning: Record types in output relations are not printed verbatim")) ignoreCounter = 2
 					else log.info line
@@ -219,7 +219,7 @@ class SouffleScript {
 		executionTime = Helper.timing {
 			executor.enableMonitor(monitoringInterval, monitorClosure).execute(executionCommand).disableMonitor()
 		}
-		log.info "Analysis execution time (sec): $executionTime"
+		log.info "\033[33m"+"\033[1m"+"Analysis execution time (sec): $executionTime"+"\033[0m"
 
 		return [compilationTime, executionTime]
 	}
@@ -255,7 +255,7 @@ class SouffleScript {
                 if (ignoreCounter != 0) ignoreCounter--
                 else if (line.startsWith("Warning: No rules/facts defined for relation") ||
                         line.startsWith("Warning: Deprecated output qualifier was used")) {
-                    log.info line
+                    //log.info line
                     ignoreCounter = 2
                 } else if (line.startsWith("Warning: Record types in output relations are not printed verbatim")) ignoreCounter = 2
                 else log.info line
@@ -263,7 +263,7 @@ class SouffleScript {
             Files.delete(tmpFile)
         }
 
-        log.info "Analysis execution time (sec): ${executionTime}"
+        log.info "\033[33m"+"\033[1m"+"Analysis execution time (sec): ${executionTime}"+"\033[0m"
         return [compilationTime, executionTime]
     }
 

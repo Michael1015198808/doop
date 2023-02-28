@@ -221,6 +221,7 @@ executeInArgumentToHost(?arg, ?obj, "Col-Value"):-
     EntrySetArgVar(?objType, ?arg).
 
 //process CorrelationExtender
+// InvolvedMethod(?callee),
 ExtendCorrelation(?arg1, ?arg2):-
     CorrelationExtenderNeedProcessing(?invocation, ?callee),
     CorrelationExtender(?callee, ?index0, ?index1),
@@ -282,6 +283,7 @@ InArgumentToHost(?actual, ?callee, ?index, ?host):-
     InArgumentToHostTemp(?actual, ?callee, ?index, ?base),
     HostOfVar(?base, _, ?host).
 
+// InvolvedMethod(?callee),
 executeInArgumentToHost(?arg, ?host, ?category) :-
     InArgumentToHost(?arg, ?callee, ?index, ?host),
     MethodParameterConstraint(?callee, ?index, ?cons, ?category),
@@ -445,6 +447,16 @@ NotPassingReturnAssignFrom(?return):-
     contains("values()",?method);
     contains("Entry(",?method);
     contains("Iterator(",?method)).
+
+// InvolvedMethod(?method):-
+    // RelatedCollectionOutMethod(?method).
+// InvolvedMethod(?method):-
+    // RelatedCollectionOutMethodB(?method).
+
+// InvolvedMethod(?method):-
+    // ArrayInitializerNeedProcessingTamiflex(_, ?method, _, _).
+// InvolvedMethod(?method):-
+    // ArrayInitializerNeedProcessing(_, ?method, _, _).
 
 // logic to cut collection edges in main pta analysis
 

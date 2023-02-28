@@ -44,7 +44,7 @@ public class Phantoms {
 
     public void showPhantomInfo() {
         int phantomsFound = counter.get();
-        if (phantomsFound > 0)
-            System.out.println("Found " + phantomsFound + " phantom references. Rerun with '" + Parameters.OPT_REPORT_PHANTOMS + "' for more details.");
+        //if (phantomsFound > 0)
+            //System.out.println("Found " + phantomsFound + " phantom references. Rerun with '" + Parameters.OPT_REPORT_PHANTOMS + "' for more details.");
     }
 }

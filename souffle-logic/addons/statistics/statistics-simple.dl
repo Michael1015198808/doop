@@ -205,57 +205,58 @@ Stats_Simple_Application_PotentiallyFailingCast(?type, ?from, ?to) :-
 
 /***************************************************/
 #ifndef DISABLE_POINTS_TO
-NewMetricMacro( "1.0", "var points-to (INS)", Stats_Simple_InsensVarPointsTo(_, _)).
-NewMetricMacro( "1.5", "var points-to (SENS)", mainAnalysis.VarPointsTo(_, _, _, _)).
-NewMetricMacro( "5.0", "app var points-to (INS)", Stats_Simple_Application_InsensVarPointsTo(_, _)).
-NewMetricMacro( "5.5", "app var points-to (SENS)", Stats_Simple_Application_VarPointsTo(_, _, _, _)).
-NewMetricMacro( "5.7", "java.util var points-to (INS)", Stats_Simple_JavaUtilInsensVarPointsTo(_, _)).
-NewMetricMacro( "5.8", "java.util var points-to (SENS)", Stats_Simple_JavaUtilVarPointsTo(_, _, _, _)).
-NewMetricMacro("10.0", "reachable variables (INS)", Stats_Simple_InsensReachableVar(_)).
-NewMetricMacro("10.5", "reachable variables (SENS)", Stats_Simple_ReachableVar(_, _)).
+NewMetricMacro("1.0", "reachable casts that may fail", Stats_Simple_PotentiallyFailingCast(_, _, _)).
+NewMetricMacro("1.1", "reachable methods", mainAnalysis.Reachable(_)).
+// NewMetricMacro("11.5", "reachable methods (SENS)", mainAnalysis.ReachableContext(_, _)).
+NewMetricMacro("1.2", "polymorphic virtual call sites", Stats_Simple_PolymorphicCallSite(_)).
+NewMetricMacro( "1.3", "call graph edges", Stats_Simple_InsensCallGraphEdge(_, _)).
+// NewMetricMacro( "8.5", "call graph edges (SENS)", mainAnalysis.CallGraphEdge(_, _, _, _)).
 
-NewMetricMacro( "2.0", "array index points-to (INS)", Stats_Simple_InsensArrayIndexPointsTo(_, _)).
-NewMetricMacro( "2.5", "array index points-to (SENS)", mainAnalysis.ArrayIndexPointsTo(_, _, _, _)).
-NewMetricMacro( "6.0", "app array index points-to (INS)", Stats_Simple_Application_InsensArrayIndexPointsTo(_, _)).
-NewMetricMacro( "6.5", "app array index points-to (SENS)", Stats_Simple_Application_ArrayIndexPointsTo(_, _, _, _)).
+NewMetricMacro( "1.8", "var points-to", Stats_Simple_InsensVarPointsTo(_, _)).
+// NewMetricMacro( "1.9", "var points-to (SENS)", mainAnalysis.VarPointsTo(_, _, _, _)).
+// NewMetricMacro( "5.0", "app var points-to (INS)", Stats_Simple_Application_InsensVarPointsTo(_, _)).
+// NewMetricMacro( "5.5", "app var points-to (SENS)", Stats_Simple_Application_VarPointsTo(_, _, _, _)).
+// NewMetricMacro( "5.7", "java.util var points-to (INS)", Stats_Simple_JavaUtilInsensVarPointsTo(_, _)).
+// NewMetricMacro( "5.8", "java.util var points-to (SENS)", Stats_Simple_JavaUtilVarPointsTo(_, _, _, _)).
+// NewMetricMacro("10.0", "reachable variables (INS)", Stats_Simple_InsensReachableVar(_)).
+// NewMetricMacro("10.5", "reachable variables (SENS)", Stats_Simple_ReachableVar(_, _)).
 
-NewMetricMacro( "3.0", "instance field points-to (INS)", Stats_Simple_InsensInstanceFieldPointsTo(_, _, _)).
-NewMetricMacro( "3.5", "instance field points-to (SENS)", mainAnalysis.InstanceFieldPointsTo(_, _, _, _, _)).
+NewMetricMacro( "2.0", "array index points-to", Stats_Simple_InsensArrayIndexPointsTo(_, _)).
+// NewMetricMacro( "2.5", "array index points-to (SENS)", mainAnalysis.ArrayIndexPointsTo(_, _, _, _)).
+// NewMetricMacro( "6.0", "app array index points-to (INS)", Stats_Simple_Application_InsensArrayIndexPointsTo(_, _)).
+// NewMetricMacro( "6.5", "app array index points-to (SENS)", Stats_Simple_Application_ArrayIndexPointsTo(_, _, _, _)).
 
-NewMetricMacro( "4.0", "static field points-to (INS)", Stats_Simple_InsensStaticFieldPointsTo(_, _)).
-NewMetricMacro( "4.5", "static field points-to (SENS)", mainAnalysis.StaticFieldPointsTo(_, _, _)).
+NewMetricMacro( "3.0", "instance field points-to", Stats_Simple_InsensInstanceFieldPointsTo(_, _, _)).
+// NewMetricMacro( "3.5", "instance field points-to (SENS)", mainAnalysis.InstanceFieldPointsTo(_, _, _, _, _)).
 
-NewMetricMacro( "7.0", "app instance field points-to (INS)", Stats_Simple_Application_InsensInstanceFieldPointsTo(_, _, _)).
-NewMetricMacro( "7.5", "app instance field points-to (SENS)", Stats_Simple_Application_InstanceFieldPointsTo(_, _, _, _, _)).
+NewMetricMacro( "4.0", "static field points-to", Stats_Simple_InsensStaticFieldPointsTo(_, _)).
+// NewMetricMacro( "4.5", "static field points-to (SENS)", mainAnalysis.StaticFieldPointsTo(_, _, _)).
+
+// NewMetricMacro( "7.0", "app instance field points-to (INS)", Stats_Simple_Application_InsensInstanceFieldPointsTo(_, _, _)).
+// NewMetricMacro( "7.5", "app instance field points-to (SENS)", Stats_Simple_Application_InstanceFieldPointsTo(_, _, _, _, _)).
 #endif // DISABLE_POINTS_TO
 
-NewMetricMacro( "8.0", "call graph edges (INS)", Stats_Simple_InsensCallGraphEdge(_, _)).
-NewMetricMacro( "8.5", "call graph edges (SENS)", mainAnalysis.CallGraphEdge(_, _, _, _)).
-NewMetricMacro( "9.0", "non-reachable app concrete methods", Stats_Simple_NonReachableApplicationConcreteMethod(_)).
-NewMetricMacro("11.0", "reachable methods (INS)", mainAnalysis.Reachable(_)).
-NewMetricMacro("11.5", "reachable methods (SENS)", mainAnalysis.ReachableContext(_, _)).
-NewMetricMacro("11.75", "total methods", isMethod(_)).
+// NewMetricMacro( "9.0", "non-reachable app concrete methods", Stats_Simple_NonReachableApplicationConcreteMethod(_)).
+// NewMetricMacro("11.75", "total methods", isMethod(_)).
 
 
-NewMetricMacro("12.0", "virtual call sites (statically)", isVirtualMethodInvocation_Insn(_)).
-NewMetricMacro("13.0", "reachable virtual call sites", Stats_Simple_ReachableVirtualMethodInvocation(_)).
-NewMetricMacro("14.0", "polymorphic virtual call sites", Stats_Simple_PolymorphicCallSite(_)).
-NewMetricMacro("15.0", "null virtual call sites", Stats_Simple_NullVirtualMethodInvocation(_)).
-NewMetricMacro("15.5", "empty virtual call sites", Stats_Simple_EmptyVirtualMethodInvocation(_)).
-NewMetricMacro("16.0", "app virtual call sites (statically)", Stats_Simple_Application_VirtualMethodInvocation(_)).
-NewMetricMacro("17.0", "app reachable virtual call sites", Stats_Simple_Application_ReachableVirtualMethodInvocation(_)).
-NewMetricMacro("18.0", "app polymorphic virtual call sites", Stats_Simple_Application_PolymorphicCallSite(_)).
-NewMetricMacro("19.0", "app null virtual call sites", Stats_Simple_Application_NullVirtualMethodInvocation(_)).
-NewMetricMacro("19.5", "app empty reachable virtual call sites", Stats_Simple_Application_EmptyReachableVirtualMethodInvocation(_)).
+// NewMetricMacro("12.0", "virtual call sites (statically)", isVirtualMethodInvocation_Insn(_)).
+// NewMetricMacro("13.0", "reachable virtual call sites", Stats_Simple_ReachableVirtualMethodInvocation(_)).
+// NewMetricMacro("15.0", "null virtual call sites", Stats_Simple_NullVirtualMethodInvocation(_)).
+// NewMetricMacro("15.5", "empty virtual call sites", Stats_Simple_EmptyVirtualMethodInvocation(_)).
+// NewMetricMacro("16.0", "app virtual call sites (statically)", Stats_Simple_Application_VirtualMethodInvocation(_)).
+// NewMetricMacro("17.0", "app reachable virtual call sites", Stats_Simple_Application_ReachableVirtualMethodInvocation(_)).
+// NewMetricMacro("18.0", "app polymorphic virtual call sites", Stats_Simple_Application_PolymorphicCallSite(_)).
+// NewMetricMacro("19.0", "app null virtual call sites", Stats_Simple_Application_NullVirtualMethodInvocation(_)).
+// NewMetricMacro("19.5", "app empty reachable virtual call sites", Stats_Simple_Application_EmptyReachableVirtualMethodInvocation(_)).
 
-NewMetricMacro("20.0", "casts (statically)", AssignCast(_, _, _, _)).
-NewMetricMacro("21.0", "reachable casts", Stats_Simple_ReachableCast(_, _, _, _)).
-NewMetricMacro("22.0", "reachable casts that may fail", Stats_Simple_PotentiallyFailingCast(_, _, _)).
-NewMetricMacro("23.0", "app casts (statically)", Stats_Simple_Application_Cast(_, _, _, _)).
-NewMetricMacro("24.0", "app reachable casts", Stats_Simple_Application_ReachableCast(_, _, _, _)).
-NewMetricMacro("25.0", "app reachable casts that may fail", Stats_Simple_Application_PotentiallyFailingCast(_, _, _)).
-NewMetricMacro("25.5", "app reachable methods", Stats_Simple_Application_ReachableMethod(_)).
-NewMetricMacro("25.75", "app concrete methods", Stats_Simple_ApplicationConcreteMethod(_)).
+// NewMetricMacro("20.0", "casts (statically)", AssignCast(_, _, _, _)).
+// NewMetricMacro("21.0", "reachable casts", Stats_Simple_ReachableCast(_, _, _, _)).
+// NewMetricMacro("23.0", "app casts (statically)", Stats_Simple_Application_Cast(_, _, _, _)).
+// NewMetricMacro("24.0", "app reachable casts", Stats_Simple_Application_ReachableCast(_, _, _, _)).
+// NewMetricMacro("25.0", "app reachable casts that may fail", Stats_Simple_Application_PotentiallyFailingCast(_, _, _)).
+// NewMetricMacro("25.5", "app reachable methods", Stats_Simple_Application_ReachableMethod(_)).
+// NewMetricMacro("25.75", "app concrete methods", Stats_Simple_ApplicationConcreteMethod(_)).
 
 //NewMetricMacro("50.0", "call sites that did (not) get refined", SiteToRefine(_)).
 //NewMetricMacro("51.0", "allocation sites that did (not) get refined", ValueToRefine(_)).
@@ -363,10 +364,10 @@ NewMetricMacro("45.0", "total leaks", Stats_Simple_LeakingTaintedInformation(_, 
  * Open Programs
  ***************************************************/
 
-NewMetricMacro("61.0", "mock objects", MockObject(_, _)).
-NewMetricMacro("61.1", "mock objects for receivers", MockObjFromOpenProgramEntryPointReceiver(_)).
-NewMetricMacro("61.2", "mock objects for arg", MockObjFromOpenProgramEntryPointArg(_)).
-NewMetricMacro("61.6", "forced-reachable formals that could not be mocked", UnmockableFormalOfForcedReachableContext(_, _)).
+// NewMetricMacro("61.0", "mock objects", MockObject(_, _)).
+// NewMetricMacro("61.1", "mock objects for receivers", MockObjFromOpenProgramEntryPointReceiver(_)).
+// NewMetricMacro("61.2", "mock objects for arg", MockObjFromOpenProgramEntryPointArg(_)).
+// NewMetricMacro("61.6", "forced-reachable formals that could not be mocked", UnmockableFormalOfForcedReachableContext(_, _)).
 
 #ifdef OPEN_PROGRAMS
 //Stats_Simple_ReachableFromOpenProgramEntryPoint(?method) :-

@@ -36,8 +36,8 @@ def run_pre_analysis(preanalysis_id, initArgs):
     # args = args + ['--input-id', APP+"-facts"]
     # args = args + ['--Xsymlink-input-facts']
     cmd = ' '.join(args)
-    print YELLOW + BOLD + 'Running pre-analysis ...' + RESET
-    print cmd
+    print(YELLOW + BOLD + 'Running pre-analysis ...' + RESET)
+    print(cmd)
     os.system(cmd)
 
     ci_analysis_facts = os.path.join(DOOP_OUT, preanalysis_id, 'database')
@@ -73,7 +73,7 @@ def dump_required_doop_results(app, db_dir, dump_dir):
             os.mkdir(dump_dir)
         shutil.copyfile(from_path, dump_path)
 
-    print 'Dumping doop analysis results %s ...' % app
+    print('Dumping doop analysis results %s ...' % app)
     for query in REQUIRED_INPUT:
         dump_doop_results(db_dir, dump_dir, app, query)
 
@@ -88,7 +88,7 @@ def run_zipper(app, cache_dir, out_dir):
     if ONLY_LIB:
         cmd += ' -only-lib '
     cmd += '\''
-    print cmd
+    print(cmd)
     os.system(cmd)
 
     zipper_file = os.path.join(out_dir, '%s-ZipperPrecisionCriticalMethod.facts' % app)
@@ -106,7 +106,7 @@ def run_main_analysis(args, zipper_file):
     args = args + ['--Xsymlink-input-facts']
     
     cmd = ' '.join(args)
-    print YELLOW + BOLD + 'Running main (Zipper-guided) analysis ...' + RESET
+    print(YELLOW + BOLD + 'Running main (Zipper-guided) analysis ...' + RESET)
     # print cmd
     os.system(cmd)
 
