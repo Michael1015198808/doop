@@ -606,12 +606,14 @@ VarPointsTo(?hctx, ?value, ?calleeCtx, ?this) :-
   configuration.ContextRequest(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, _),
   configuration.ContextResponse(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, ?calleeCtx),
   ThisVar(?tomethod, ?this),
+  !Value_Null(?value),
   ZipperPrecisionCriticalMethod(?tomethod).
 
 VarPointsTo(?hctx, ?value, ?immCtx, ?this) :-
   configuration.ContextRequest(_, ?hctx, ?invocation, ?value, ?tomethod, _),
   isImmutableContext(?immCtx),
   ThisVar(?tomethod, ?this),
+  !Value_Null(?value),
   !ZipperPrecisionCriticalMethod(?tomethod).
 
 #else
