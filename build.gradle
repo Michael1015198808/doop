@@ -3,6 +3,7 @@ import static java.nio.file.attribute.PosixFilePermissions.*
 
 buildscript {
     repositories {
+        maven { url 'https://maven.aliyun.com/repository/public/' }
         mavenCentral()
     }
 
