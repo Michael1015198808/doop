@@ -19,7 +19,7 @@ CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?tomethod) :-
   configuration.ContextResponse(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, ?calleeCtx),
   ZipperPrecisionCriticalMethod(?tomethod).
 #ifndef X_CONTEXT_REMOVER
-// .plan 1:(2,1,3,4)
+ .plan 1:(2,1,3)
 #endif // X_CONTEXT_REMOVER
 
 CallGraphEdge(?callerCtx, ?invocation, ?immCtx, ?tomethod) :-
@@ -28,7 +28,7 @@ CallGraphEdge(?callerCtx, ?invocation, ?immCtx, ?tomethod) :-
   isImmutableContext(?immCtx),
   !ZipperPrecisionCriticalMethod(?tomethod).
 #ifndef X_CONTEXT_REMOVER
-// .plan 1:(2,1,3,4)
+ .plan 1:(2,1,3)
 #endif // X_CONTEXT_REMOVER
 
 // static invocation

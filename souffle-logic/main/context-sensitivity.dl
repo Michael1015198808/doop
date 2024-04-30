@@ -608,6 +608,9 @@ VarPointsTo(?hctx, ?value, ?calleeCtx, ?this) :-
   ThisVar(?tomethod, ?this),
   !Value_Null(?value),
   ZipperPrecisionCriticalMethod(?tomethod).
+#ifndef X_CONTEXT_REMOVER
+ .plan 1:(2,1,3,4)
+#endif // X_CONTEXT_REMOVER
 
 VarPointsTo(?hctx, ?value, ?immCtx, ?this) :-
   configuration.ContextRequest(_, ?hctx, ?invocation, ?value, ?tomethod, _),
