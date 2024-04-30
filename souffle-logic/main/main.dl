@@ -66,7 +66,11 @@
 #include "context-sensitivity-declarations.dl"
 #include "../commonMacros.dl"
 #include "prologue.dl"
+#ifdef INSTRUCTION_LEVEL
+#include "context-sensitivity-instruction-level.dl"
+#else
 #include "context-sensitivity.dl"
+#endif // INSTRUCTION_LEVEL
 #include "full-call-graph.dl"
 #include "export.dl"
 

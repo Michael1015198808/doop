@@ -804,6 +804,12 @@ class DoopAnalysisFamily implements AnalysisFamily {
 
 			//Information-flow, etc.
 			new AnalysisOption<String>(
+					id: "INSTRUCTION_LEVEL",
+					name: "instruction-level",
+					description: "Enable instruction-level points-to analysis reasoning.",
+					forPreprocessor: true
+			),
+			new AnalysisOption<String>(
 					id: "DISABLE_POINTS_TO",
 					name: "disable-points-to",
 					description: "Disable (most) points-to analysis reasoning. This should only be combined with analyses that compensate (e.g., types-only).",
