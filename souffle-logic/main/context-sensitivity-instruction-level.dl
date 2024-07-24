@@ -66,27 +66,39 @@ configuration.RecordContextRequest(?ctx, ?heapValue, ?var) :-
 
 #ifndef DISABLE_POINTS_TO
 
+// Instruction inmethod:var = new Object() => heapValue
+// Adjustable
+// SEN
 VarPointsTo(?newHCtx, ?heapValue, ?ctx, ?var) :-
   configuration.RecordContextRequest(?ctx, ?heapValue, ?var),
   configuration.RecordContextResponse(?ctx, ?heapValue, ?var, ?newHCtx).
+// INS
+// VarPointsTo(?newHCtx, ?heapValue, ?immCtx, ?var) :-
+//   configuration.RecordContextRequest(?ctx, ?heapValue, ?var),
+//   configuration.RecordContextResponse(?ctx, ?heapValue, ?var, ?newHCtx),
+//   isWildcardContext(?immCtx).
 
+// Instruction inmethod:var = new Object() => heapValue
+// Unadjustable
 VarPointsTo(?hctx, ?heapValue, ?ctx, ?var) :-
   Reachable(?inmethod),  // optimization purposes
   AssignContextInsensitiveHeapAllocation(?heapValue, ?var, ?inmethod),
-  ReachableContext(?ctx, ?inmethod),
+  isWildcardContext(?ctx),
   isImmutableHContext(?hctx).
-  .plan 1:(4,3,2,1)
+  // .plan 1:(4,3,2,1)
 
 /**
  * Null assignments
  */
 
+// Instruction inmethod:to = null
+// Unadjustable
 VarPointsTo(?hctx, ?null, ?toCtx, ?to) :-
-   Reachable(?inmethod),  // optimization purposes
-   AssignNull(?to, ?inmethod),
-   Value_Null(?null),
-   ReachableContext(?toCtx, ?inmethod),
-   isImmutableHContext(?hctx).
+  Reachable(?inmethod),  // optimization purposes
+  AssignNull(?to, ?inmethod),
+  Value_Null(?null),
+  isWildcardContext(?toCtx),
+  isImmutableHContext(?hctx).
 
 #ifdef ANDROID
 /**
@@ -94,6 +106,7 @@ VarPointsTo(?hctx, ?null, ?toCtx, ?to) :-
  * only used for Android analyses, hence the ad hoc logic to match
  * a specific host class (R).
  */
+#assert
 
 VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
    ReachableContext(?toCtx, ?inmethod),
@@ -112,6 +125,9 @@ VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
 // No need to check if type compatible: check is done at original
 // inputs to VarPointsTo
 
+// Instruction inmethod:to = from
+// Adjustable
+// SEN
 VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   VarPointsTo(?hctx, ?value, ?ctx, ?from),
   AssignLocal(?from, ?to, _).
@@ -120,12 +136,15 @@ VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
  * Cast assignments
  */
 
+// Instruction inmethod:to = (type) from
+// Adjustable
+// SEN
 VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   OptAssignCast(?type, ?to, ?from),
   VarPointsTo(?hctx, ?value, ?ctx, ?from),
   Value_Type(?value, ?valuetype),
   basic.SupertypeOf(?type, ?valuetype).
- .plan 2:(3,2,1,4)
+  .plan 2:(3,2,1,4)
 
 .decl OptAssignCast(?type:Type, ?to:Var, ?from:Var)
 OptAssignCast(?type, ?to, ?from) :-
@@ -136,13 +155,28 @@ OptAssignCast(?type, ?to, ?from) :-
  * Load/Store instance fields
  */
 
+// Instruction inmethod:to = base.sig
+// Adjustable
+// SEN
 LoadHeapInstanceField(?ctx, ?to, ?sig, ?basehctx, ?basevalue) :-
   LoadInstanceField(?base, ?sig, ?to, _),
   VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base).
 
+// Instruction inmethod:base.sig = from
+// Adjustable
+// SEN
+StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?wildCtx, ?from),
 StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?ctx, ?from) :-
   StoreInstanceField(?from, ?base, ?signature, _),
-  VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base).
+  VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base),
+  isWildcardContext(?wildCtx).
+
+StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?ctx, ?from),
+StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?wildCtx, ?from) :-
+  StoreInstanceField(?from, ?base, ?signature, ?inmethod),
+  VarPointsTo(?basehctx, ?basevalue, ?wildCtx, ?base),
+  ReachableContext(?ctx, ?inmethod),
+  isWildcardContext(?wildCtx).
 
 #if !defined(FEATHERWEIGHT_ANALYSIS) && !defined(DISABLE_POINTS_TO)
 //// Much slower in Souffle, for large analyses
@@ -151,18 +185,20 @@ StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?ctx, ?from) :-
 //   InstanceFieldPointsTo(?hctx, ?value, ?signature, ?basehctx, ?basevalue).
 //    .plan 1:(2,1)
 
+// Instruction inmethod:base.sig = from & to = base.sig
 HeapInterproceduralAssign(?ctxTo, ?to, ?ctxFrom, ?from) :-
   LoadHeapInstanceField(?ctxTo, ?to, ?signature, ?basehctx, ?basevalue),
   StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?ctxFrom, ?from),
   !Value_Null(?basevalue).
- .plan 1:(2,1)
+  .plan 1:(2,1)
 
 VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
   HeapInterproceduralAssign(?toCtx, ?to, ?fromCtx, ?from),
   VarPointsTo(?hctx, ?value, ?fromCtx, ?from),
   NotSpecialObject(?value).
- .plan 1:(2,1,3), 2:(3,2,1)
+  .plan 1:(2,1,3), 2:(3,2,1)
 
+// Instruction inmethod:base.sig = from & to = base.sig
 VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   LoadHeapInstanceField(?ctx, ?to, ?signature, ?basehctx, ?basevalue),
   InstanceFieldPointsTo(?hctx, ?value, ?signature, ?basehctx, ?basevalue).
@@ -172,7 +208,7 @@ InstanceFieldPointsTo(?hctx, ?value, ?signature, ?basehctx, ?basevalue) :-
   VarPointsTo(?hctx, ?value, ?ctx, ?from),
   NotSpecialObject(?value),
   !Value_Null(?basevalue).
- .plan 1:(2,1,3), 2:(3,2,1)
+  .plan 1:(2,1,3), 2:(3,2,1)
 
 #else
 #if defined(FEATHERWEIGHT_ANALYSIS)
@@ -243,18 +279,25 @@ InstanceFieldPointsTo(?hctx, ?value, ?signature, ?basehctx, ?basevalue) :-
  * Load static fields
  */
 
+// Instruction inmethod:to = Class.sig
+// Unadjustable
+// TODO
 VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   StaticFieldPointsTo(?hctx, ?value, ?sig),
   LoadStaticField(?sig, ?to, ?inmethod),
-  ReachableContext(?ctx, ?inmethod).
+  isWildcardContext(?ctx),
+  Reachable(?inmethod).
 #ifndef X_CONTEXT_REMOVER
-  .plan 1:(3,2,1)
+  // .plan 1:(3,2,1)
 #endif // X_CONTEXT_REMOVER
 
 /**
  * Store static fields
  */
 #if !defined(FEATHERWEIGHT_ANALYSIS) && !defined(DISABLE_POINTS_TO)
+// Instruction inmethod:Class.sig = from
+// Unadjustable
+// No special consideration needed
 StaticFieldPointsTo(?hctx, ?value, ?signature) :-
   ReachableStoreStaticFieldFrom(?from),
   StoreStaticField(?from, ?signature, _),
@@ -322,6 +365,7 @@ ArrayIndexPointsTo(?hctx, ?value, ?hctx, ?baseHeap) :-
 OptLoadHeapArrayIndex(?to, ?basevalue) :-
   LoadHeapArrayIndex(_, ?to, _, ?basevalue).
 
+// load elements from value `basevalue` into var `to`
 Temp1(?basevalue, ?to) :-
   NotEmptyArrayValue(?basevalue),
   OptLoadHeapArrayIndex(?to, ?basevalue),
@@ -330,6 +374,7 @@ Temp1(?basevalue, ?to) :-
   Var_Type(?to, ?type),
   basic.SupertypeOf(?type, ?basecomponenttype).
 
+// Instruction inmethod: to = basevalue[]
 Temp2(?ctx, ?to, ?basehctx, ?basevalue) :-
   Temp1(?basevalue, ?to),
   LoadHeapArrayIndex(?ctx, ?to, ?basehctx, ?basevalue).
@@ -360,11 +405,15 @@ NotEmptyArrayValue(?heapValue) :-
 NotEmptyArrayValue(?value) :-
   Value_isNonHeap(?value).
 
+// Instruction inmethod: to = base[]
+// Adjustable
+// SEN
 LoadHeapArrayIndex(?ctx, ?to, ?basehctx, ?basevalue) :-
   ReachableLoadArrayIndexBase(?base),
   OptLoadArrayIndex(?to, ?base),
   VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base).
 
+// Instruction that loads elements from Var `base` to `to`
 OptLoadArrayIndex(?to, ?base) :-
   LoadArrayIndex(?base, ?to, _).
 
@@ -381,6 +430,9 @@ ReachableLoadArrayIndexBase(?base) :-
 .decl OptStoreIntoArray(?hctx:configuration.HContext, ?value:Value, ?basehctx:configuration.HContext, ?basevalue:Value)
 
 #if !defined(FEATHERWEIGHT_ANALYSIS) && !defined(DISABLE_POINTS_TO)
+// Instruction inmethod: basevalue[] = from
+// Adjustable
+// SEN
 OptStoreIntoArray(?hctx, ?value, ?basehctx, ?basevalue) :-
   StoreHeapArrayIndex(?basehctx, ?basevalue, ?ctx, ?from),
   VarPointsTo(?hctx, ?value, ?ctx, ?from).
@@ -400,15 +452,29 @@ ArrayIndexPointsTo(?hctx, ?value, ?basehctx, ?basevalue) :-
   Value_Type(?basevalue, ?basevaluetype),
   ComponentType(?basevaluetype, ?componenttype),
   basic.SupertypeOf(?componenttype, ?valuetype).
- .plan 1:(2,1,3,4,5,6,7),
-       2:(3,1,2,4,5,6,7),
-       3:(4,1,2,3,5,6,7),
-       4:(5,1,2,3,4,6,7)
+  .plan 1:(2,1,3,4,5,6,7),
+        2:(3,1,2,4,5,6,7),
+        3:(4,1,2,3,5,6,7),
+        4:(5,1,2,3,4,6,7)
 
+// Instruction that stores Var `from` into array Var `base`
+// Adjustable
+// SEN
+StoreHeapArrayIndex(?basehctx, ?basevalue, ?wildCtx, ?from),
 StoreHeapArrayIndex(?basehctx, ?basevalue, ?ctx, ?from) :-
   ReachableStoreArrayIndexBase(?base),
   OptStoreArrayIndex(?from, ?base),
-  VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base).
+  VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base),
+  isWildcardContext(?wildCtx).
+
+StoreHeapArrayIndex(?basehctx, ?basevalue, ?wildCtx, ?from),
+StoreHeapArrayIndex(?basehctx, ?basevalue, ?ctx, ?from) :-
+  ReachableStoreArrayIndexBase(?base),
+  StoreArrayIndex(_, ?base, ?inmethod),
+  OptStoreArrayIndex(?from, ?base),
+  ReachableContext(?ctx, ?inmethod),
+  VarPointsTo(?basehctx, ?basevalue, ?wildCtx, ?base),
+  isWildcardContext(?wildCtx).
 
 .decl ReachableStoreArrayIndexBase(?base:Var)
 
@@ -527,10 +593,18 @@ OptReturnAssign(?callerCtx, ?local, ?calleeCtx, ?return) :-
   AssignReturnValue(?invocation, ?local),
   ReturnVar(?return, ?method).
 
+// Instruction return
+// Unadjustable
 VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
   OptRetVarPointsTo(?hctx, ?value, ?fromCtx, ?from),
   OptReturnAssign(?toCtx, ?to, ?fromCtx, ?from).
   .plan 1:(2,1)
+
+VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
+  OptRetVarPointsTo(?hctx, ?value, ?wildCtx, ?from),
+  OptReturnAssign(?toCtx, ?to, _, ?from),
+  isWildcardContext(?wildCtx).
+  // .plan 1:(3,2,1)
 
 #endif // INFORMATION_FLOW
 
@@ -569,12 +643,34 @@ VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
  *.plan 1:(2,1)
  **/
 
+// Instruction f(actual) => f(formal)
+// Unadjustable
 VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
-  OptArgVarPointsTo(?hctx, ?value, ?fromCtx, ?from),
+  (
+    OptArgVarPointsTo(?hctx, ?value, ?fromCtx, ?from); (
+    OptArgVarPointsTo(?hctx, ?value, ?wildCtx, ?from),
+    isWildcardContext(?wildCtx)
+  )),
   OptArgAssign(?toCtx, ?to, ?fromCtx, ?from, ?allowedType),
   Value_Type(?value, ?type),
   basic.SubtypeOf(?type, ?allowedType).
-  .plan 1:(2,1,3,4)
+  // .plan 1:(2,1,3,4)
+
+VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
+  OptArgVarPointsTo(?hctx, ?value, _, ?from),
+  OptArgAssign(?toCtx, ?to, ?wildCtx, ?from, ?allowedType),
+  Value_Type(?value, ?type),
+  basic.SubtypeOf(?type, ?allowedType),
+  isWildcardContext(?wildCtx).
+  .plan 1:(2,1,3,4,5)
+
+// VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
+//   OptArgVarPointsTo(?hctx, ?value, _, ?from),
+//   OptArgAssign(?toCtx, ?to, ?immCtx, ?from, ?allowedType),
+//   Value_Type(?value, ?type),
+//   basic.SubtypeOf(?type, ?allowedType),
+//   isWildcardContext(?immCtx).
+//   .plan 1:(2,1,3,4,5)
 
 #endif // INFORMATION_FLOW
 
@@ -586,10 +682,15 @@ VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
 // No longer using general-purpose inter-procedural assignments for lots
 // of different flows. Souffle cannot optimize well. Best to break up
 // key cases (like arg-return flow, above) into separate, well-optimized rules.
+// Instruction UNKNOWN
 VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
   OptInterproceduralAssign(?toCtx, ?to, ?fromCtx, ?from),
   VarPointsTo(?hctx, ?value, ?fromCtx, ?from).
-//  .plan 1:(2,1)
+VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
+  OptInterproceduralAssign(?toCtx, ?to, ?fromCtx, ?from),
+  VarPointsTo(?hctx, ?value, ?ctx, ?from),
+  isWildcardContext(?ctx).
+// .plan 1:(2,1)
 //// no plan for now. These kinds of inter-proc assignments should be very few!
 
 
@@ -641,14 +742,22 @@ VarPointsTo(?hctx, ?value, ?immCtx, ?this) :-
 
 #else
 
+// Instruction value.f() => this
+// Unadjustable
 VarPointsTo(?hctx, ?value, ?calleeCtx, ?this) :-
   configuration.ContextRequest(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, _),
   configuration.ContextResponse(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, ?calleeCtx),
   ThisVar(?tomethod, ?this),
   !Value_Null(?value).
 #ifndef X_CONTEXT_REMOVER
- .plan 1:(2,1,3)
+  .plan 1:(2,1,3)
 #endif // X_CONTEXT_REMOVER
+// VarPointsTo(?hctx, ?value, ?calleeCtx, ?this) :-
+//   configuration.ContextRequest(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, _),
+//   ThisVar(?tomethod, ?this),
+//   isImmutableContext(?calleeCtx),
+//   !Value_Null(?value).
+
 
 #endif // X_ZIPPER
 
@@ -658,6 +767,7 @@ VarPointsTo(?hctx, ?value, ?calleeCtx, ?this) :-
 
 .decl OptSuperMethodInvocationBase(?invocation:MethodInvocation, ?base:Var)
 
+// Instruction super()
 OptSuperMethodInvocationBase(?invocation, ?base) :-
   Reachable(?inmethod),
   Instruction_Method(?invocation, ?inmethod),
@@ -689,6 +799,10 @@ configuration.ContextRequest(?callerCtx, ?hctx, ?invocation, ?value, ?tomethod, 
  */
 ReachableContext(?ctx, ?method) :-
   CallGraphEdge(_, _, ?ctx, ?method).
+
+// ReachableContext(?immCtx, ?method) :-
+//   CallGraphEdge(_, _, _, ?method),
+//   isWildcardContext(?immCtx).
 
 Reachable(?method) :-
   ReachableContext(_, ?method).
@@ -777,4 +891,83 @@ VarPointsTo(?hctx, ?value, ?ctx, ?return) :-
   MockedMethodReturns(?method, ?value, ?type),
   AssignReturnValue(?invocation, ?return),
   isImmutableHContext(?hctx).
+#endif // DISABLE_POINTS_TO
+
+#ifndef DISABLE_POINTS_TO
+// Instruction catch(Exception param)
+// See exceptions.dl
+Instruction_Throws(?hctx, ?value, ?callerCtx, ?invocation) :-
+  ThrowPointsTo(?hctx, ?value, ?wildCtx, ?tomethod),
+  CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?tomethod),
+  isWildcardContext(?wildCtx).
+  .plan 1:(2,1,3)
+// // VarPointsTo(?hctx, ?value, ?immCtx, ?param) :-
+// //   Instruction_Throws(?hctx, ?value, _, ?insn),
+// //   Value_Type(?value, ?valueType),
+// //   basic.ExceptionHandler_InRange(?handler, ?insn),
+// //   ExceptionHandler_Type(?handler, ?handlerType),
+// //   basic.SubtypeOf(?valueType, ?handlerType),
+// //   ConcreteClass(?valueType), // filtering null_type
+// //   ExceptionHandler_FormalParam(?handler, ?param),
+// //   !basic.ExceptionHandler_Impossible(?valueType, ?handler, ?insn),
+// //   isWildcardContext(?immCtx).
+// //   .plan 1:(2,1,3,4,5,6,7,8)
+// 
+// // Instruction of calling "<java.lang.ref.Finalizer: void register(java.lang.Object)>"
+// // See finalization.dl
+// ReachableContext(?immCtx, ?register),
+// VarPointsTo(?hctx, ?heapValue, ?immCtx, ?formal) :-
+//   configuration.ContextResponse(?callerCtx, ?hctx, ?fakeinvo, ?heapValue, ?register, ?calleeCtx),
+//   FinalizeContextRequest(?callerCtx, ?hctx, ?fakeinvo, ?heapValue, ?register, ?formal),
+//   isWildcardContext(?immCtx).
+// .plan 1:(2,1,3)
+// 
+// // Instruction of calling "<java.lang.ThreadGroup: void <init>()>"
+// // See threads.dl
+// VarPointsTo(?hctx, ?value, ?immCtx, ?this),
+// ReachableContext(?immCtx, ?signature) :-
+//     ?signature = "<java.lang.ThreadGroup: void <init>()>",
+//     ThisVar(?signature, ?this),
+//     SystemThreadGroup(?hctx, ?value),
+//     isWildcardContext(?immCtx),
+//     configuration.ContextRequest(?callerCtx, ?hctx, ?invo, ?value, ?signature, 1),
+//     configuration.ContextResponse(?callerCtx, ?hctx, ?invo, ?value, ?signature, ?calleeCtx).
+// 
+// VarPointsTo(?hctx, ?value, ?immCtx, ?this),
+// VarPointsTo(?groupHCtx, ?group, ?immCtx, ?groupParam),
+// ReachableContext(?immCtx, ?signature) :-
+//     ?signature = "<java.lang.ThreadGroup: void <init>(java.lang.ThreadGroup,java.lang.String)>",
+//     ThisVar(?signature, ?this),
+//     MainThreadGroup(?hctx, ?value),
+//     FormalParam(0, ?signature, ?groupParam),
+//     SystemThreadGroup(?groupHCtx, ?group),
+//     isWildcardContext(?immCtx),
+//     configuration.ContextRequest(?callerCtx, ?hctx, ?invo, ?value, ?signature, 1),
+//     configuration.ContextResponse(?callerCtx, ?hctx, ?invo, ?value, ?signature, ?calleeCtx).
+// 
+// VarPointsTo(?hctx, ?value, ?immCtx, ?this),
+// VarPointsTo(?groupHCtx, ?group, ?immCtx, ?groupParam),
+// ReachableContext(?immCtx, ?signature) :-
+//     ?signature = "<java.lang.Thread: void <init>(java.lang.ThreadGroup,java.lang.String)>",
+//     ThisVar(?signature, ?this),
+//     MainThread(?hctx, ?value),
+//     FormalParam(0, ?signature, ?groupParam),
+//     MainThreadGroup(?groupHCtx, ?group),
+//     isWildcardContext(?immCtx),
+//     configuration.ContextRequest(?callerCtx, ?hctx, ?invo, ?value, ?signature, 1),
+//     configuration.ContextResponse(?callerCtx, ?hctx, ?invo, ?value, ?signature, ?calleeCtx).
+// 
+// CallGraphEdge(?callerCtx, ?invocation, ?immCtx, ?start) :-
+//     CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?start),
+//     isWildcardContext(?immCtx).
+// 
+// CallGraphEdge(?callerCtx, ?invocation, ?immCtx, ?start) :-
+// #if defined(JRE13) || defined(JRE14)
+//     ?start = "<java.lang.Thread: void start()>",
+// #else
+//     ?start = "<java.lang.Thread: void start0()>",
+// #endif // JRE13, JRE14
+//     CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?start),
+//     isWildcardContext(?immCtx).
+// 
 #endif // DISABLE_POINTS_TO
