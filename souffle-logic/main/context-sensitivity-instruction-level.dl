@@ -1,5 +1,25 @@
 #include "init.dl"
 
+// imports.dl Line 1151 - 1181
+MockHeapConsMacro(?heap, ?type) :-
+  ?heap = "<<wildcard-context>>",
+  ?type = "java.lang.Object".
+
+// prologue.dl
+Value_DeclaringType(?value, "java.lang.System") :-
+  ?value = "<<wildcard-context>>",
+  isValue(?value).
+
+// init.dl Line 95 & Line 100 - 104
+configuration.InitContextRequest("<<wildcard-context>>").
+
+.decl isWildcardContext(?ctx:configuration.Context)
+isWildcardContext(?ctx),
+isContext(?ctx) :-
+  ?s = "<<wildcard-context>>",
+  configuration.InitContextRequest(?s),
+  configuration.InitContextResponse(?s, ?ctx).
+
 /**
  * Generic context-sensitive pointer analysis, and more
  */
