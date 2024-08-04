@@ -263,9 +263,19 @@ TamiflexInvocationFirstParam(?calleeCtx, ?formal, ?callerCtx, ?argsParam) :-
 .decl TamiflexInvocationArgumentArrayValue(?calleeCtx:configuration.Context, ?formal:Var,
                                            ?basehctx:configuration.HContext, ?basevalue:Value)
 
+#ifndef INSTRUCTION_LEVEL
 TamiflexInvocationArgumentArrayValue(?calleeCtx, ?formal, ?basehctx, ?basevalue) :-
   TamiflexInvocationFirstParam(?calleeCtx, ?formal, ?ctx, ?base),
   VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base).
+#else
+TamiflexInvocationArgumentArrayValue(?calleeCtx, ?formal, ?basehctx, ?basevalue) :-
+  TamiflexInvocationFirstParam(?calleeCtx, ?formal, ?ctx, ?base),
+  VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base).
+TamiflexInvocationArgumentArrayValue(?calleeCtx, ?formal, ?basehctx, ?basevalue) :-
+  TamiflexInvocationFirstParam(?calleeCtx, ?formal, ?ctx, ?base),
+  VarPointsTo(?basehctx, ?basevalue, ?wildCtx, ?base),
+  isWildcardContext(?wildCtx).
+#endif // INSTRUCTION_LEVEL
 
 VarPointsTo(?hctx, ?value, ?calleeCtx, ?formal) :-
   TamiflexInvocationArgumentArrayValue(?calleeCtx, ?formal, ?basehctx, ?basevalue),
