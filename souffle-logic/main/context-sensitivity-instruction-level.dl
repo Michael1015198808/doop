@@ -20,6 +20,9 @@ isContext(?ctx) :-
   configuration.InitContextRequest(?s),
   configuration.InitContextResponse(?s, ?ctx).
 
+.decl InsensitiveAssignLocal(?from:symbol, ?to:symbol)
+.input InsensitiveAssignLocal(IO="file",filename="InsAssignLocal.facts",delimiter="\t")
+
 /**
  * Generic context-sensitive pointer analysis, and more
  */
@@ -130,7 +133,14 @@ VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
 // SEN
 VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   VarPointsTo(?hctx, ?value, ?ctx, ?from),
-  AssignLocal(?from, ?to, _).
+  AssignLocal(?from, ?to, _),
+  !InsensitiveAssignLocal(?from, ?to).
+// INS
+VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
+  VarPointsTo(?hctx, ?value, _, ?from),
+  AssignLocal(?from, ?to, _),
+  InsensitiveAssignLocal(?from, ?to),
+  isWildcardContext(?ctx).
 
 /**
  * Cast assignments

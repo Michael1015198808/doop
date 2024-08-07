@@ -809,6 +809,16 @@ class DoopAnalysisFamily implements AnalysisFamily {
 					description: "Enable instruction-level points-to analysis reasoning.",
 					forPreprocessor: true
 			),
+			new AnalysisOption(
+					id: "INS_ASSIGNLOCAL",
+					name: "ins-assignlocal",
+					group: GROUP_EXPERIMENTAL,
+					description: "Use file with precision-critical local assignments selected, these assignments are analyzed context-insensitively.",
+					argName: "FILE",
+					argInputType: InputType.MISC,
+					forCacheID: true,
+					forPreprocessor: true
+			),
 			new AnalysisOption<String>(
 					id: "DISABLE_POINTS_TO",
 					name: "disable-points-to",
