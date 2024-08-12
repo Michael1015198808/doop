@@ -306,10 +306,34 @@ abstract class DoopAnalysis extends Analysis implements Runnable {
             Files.copy(origSpecialCSMethodsFile.toPath(), destSpecialCSMethodsFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
         }
 
+        if (options.INS_ASSIGNHEAPALLOCATION.value) {
+            File origASSIGNHEAPALLOCATIONFile = new File(options.INS_ASSIGNHEAPALLOCATION.value.toString())
+            File destASSIGNHEAPALLOCATIONFile = new File(factsDir, "InsAssignHeapAllocation.facts")
+            Files.copy(origASSIGNHEAPALLOCATIONFile.toPath(), destASSIGNHEAPALLOCATIONFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        }
+
         if (options.INS_ASSIGNLOCAL.value) {
             File origASSIGNLOCALFile = new File(options.INS_ASSIGNLOCAL.value.toString())
             File destASSIGNLOCALFile = new File(factsDir, "InsAssignLocal.facts")
             Files.copy(origASSIGNLOCALFile.toPath(), destASSIGNLOCALFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        }
+
+        if (options.INS_ASSIGNCAST.value) {
+            File origASSIGNCASTFile = new File(options.INS_ASSIGNCAST.value.toString())
+            File destASSIGNCASTFile = new File(factsDir, "InsAssignCast.facts")
+            Files.copy(origASSIGNCASTFile.toPath(), destASSIGNCASTFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        }
+
+        if (options.INS_LOADINSTANCEFIELD.value) {
+            File origLOADINSTANCEFIELDFile = new File(options.INS_LOADINSTANCEFIELD.value.toString())
+            File destLOADINSTANCEFIELDFile = new File(factsDir, "InsLoadInstanceField.facts")
+            Files.copy(origLOADINSTANCEFIELDFile.toPath(), destLOADINSTANCEFIELDFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        }
+
+        if (options.INS_LOADARRAYINDEX.value) {
+            File origLOADARRAYINDEXFile = new File(options.INS_LOADARRAYINDEX.value.toString())
+            File destLOADARRAYINDEXFile = new File(factsDir, "InsLoadArrayIndex.facts")
+            Files.copy(origLOADARRAYINDEXFile.toPath(), destLOADARRAYINDEXFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
         }
 
         if (options.X_ZIPPER.value) {
