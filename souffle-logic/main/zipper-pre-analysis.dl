@@ -148,8 +148,4 @@ VarIn(?var, ?method) :-
     Reachable(?method),
     Var_DeclaringMethod(?var, ?method).
 
-.decl InsensVarPointsTo(obj:HeapAllocation, var:Var)
-InsensVarPointsTo(obj, var) :-
-  VarPointsTo(_, obj, _, var).
-
-.output InsensVarPointsTo(IO="file",filename="VPT.csv",delimiter=", ")
+.output Stats_Simple_InsensVarPointsTo(IO="file",filename="VPT.csv",delimiter=", ")
