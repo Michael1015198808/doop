@@ -804,6 +804,12 @@ class DoopAnalysisFamily implements AnalysisFamily {
 
 			//Information-flow, etc.
 			new AnalysisOption<String>(
+					id: "LOADARRAYINDEX_DUMP",
+					name: "loadarrayindex-dump",
+					description: "Dump facts from LoadArrayIndex",
+					forPreprocessor: true
+			),
+			new AnalysisOption<String>(
 					id: "INSTRUCTION_LEVEL",
 					name: "instruction-level",
 					description: "Enable instruction-level points-to analysis reasoning.",

@@ -35,6 +35,16 @@ isContext(?ctx) :-
 .decl SensitiveLoadArrayIndex(?to:symbol, ?base:symbol)
 .input SensitiveLoadArrayIndex(IO="file",filename="InsLoadArrayIndex.facts",delimiter="\t")
 
+#ifdef LOADARRAYINDEX_DUMP
+
+.decl ReachableLoadArrayIndex(?to:symbol, ?base:symbol)
+.output ReachableLoadArrayIndex
+ReachableLoadArrayIndex(?to, ?base) :-
+  LoadArrayIndex(?base, ?to, ?inmethod),
+  Reachable(?inmethod).
+
+#endif
+
 /**
  * Generic context-sensitive pointer analysis, and more
  */

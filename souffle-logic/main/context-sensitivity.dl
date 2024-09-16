@@ -9,6 +9,16 @@
  * Reachable values: useful even when points-to analysis is limited
  */
 
+#ifdef LOADARRAYINDEX_DUMP
+
+.decl ReachableLoadArrayIndex(?to:symbol, ?base:symbol)
+.output ReachableLoadArrayIndex
+ReachableLoadArrayIndex(?to, ?base) :-
+  LoadArrayIndex(?base, ?to, ?inmethod),
+  Reachable(?inmethod).
+
+#endif
+
 .decl ReachableValue(?hctx:configuration.HContext, ?value: Value)
 
 ReachableValue(?hctx, ?heapValue) :-
