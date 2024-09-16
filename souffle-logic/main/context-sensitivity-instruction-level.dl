@@ -951,6 +951,19 @@ Instruction_Throws(?hctx, ?value, ?callerCtx, ?invocation) :-
   CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?tomethod),
   isWildcardContext(?wildCtx).
   .plan 1:(2,1,3)
+
+
+// See rules.dl
+TamiflexCallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?callee),
+VarPointsTo(?hctx, ?value, ?calleeCtx, ?this) :-
+  Tamiflex_Invoke(?callerCtx, ?invocation, ?callee),
+  ! Method_Modifier("static", ?callee),
+  ActualParam(0, ?invocation, ?base),
+  VarPointsTo(?hctx, ?value, ?wildCtx, ?base),
+  ThisVar(?callee, ?this),
+  isWildcardContext(?wildCtx),
+  isImmutableContext(?calleeCtx).
+
 // // VarPointsTo(?hctx, ?value, ?immCtx, ?param) :-
 // //   Instruction_Throws(?hctx, ?value, _, ?insn),
 // //   Value_Type(?value, ?valueType),
