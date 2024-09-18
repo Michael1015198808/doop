@@ -810,6 +810,12 @@ class DoopAnalysisFamily implements AnalysisFamily {
 					forPreprocessor: true
 			),
 			new AnalysisOption<String>(
+					id: "COMPRESSION",
+					name: "compression",
+					description: "Enable the compression mechanism.",
+					forPreprocessor: true
+			),
+			new AnalysisOption<String>(
 					id: "INSTRUCTION_LEVEL",
 					name: "instruction-level",
 					description: "Enable instruction-level points-to analysis reasoning.",
