@@ -1,19 +1,19 @@
 // Compute and output the relations that are needed by Zipper.
 
 .decl ArrayLoad(?to:Var, ?array:Value)
-.output ArrayLoad(IO="file",filename="ARRAY_LOAD.csv",delimiter=", ")
+.output ArrayLoad(IO="file",filename="ARRAY_LOAD.csv",delimiter="\t")
 
 ArrayLoad(?to, ?array) :- LoadHeapArrayIndex(_, ?to, _, ?array).
 
 
 .decl ArrayStore(?array:Value, ?from:Var)
-.output ArrayStore(IO="file",filename="ARRAY_STORE.csv",delimiter=", ")
+.output ArrayStore(IO="file",filename="ARRAY_STORE.csv",delimiter="\t")
 
 ArrayStore(?array, ?from) :- StoreHeapArrayIndex(_, ?array, _, ?from).
 
 
 .decl AllCallGraphEdge(?from:MethodInvocation, ?to:Method)
-.output AllCallGraphEdge(IO="file",filename="CALL_EDGE.csv",delimiter=", ")
+.output AllCallGraphEdge(IO="file",filename="CALL_EDGE.csv",delimiter="\t")
 
 AllCallGraphEdge(?from, ?to) :- CallGraphEdge(_, ?from, _, ?to).
 
@@ -27,7 +27,7 @@ AllCallGraphEdge(?from, ?to) :- TamiflexCallGraphEdge(_, ?from, _, ?to).
 
 
 .decl CallReturnTo(?recv:Var, ?to:Var)
-.output CallReturnTo(IO="file",filename="CALL_RETURN_TO.csv",delimiter=", ")
+.output CallReturnTo(IO="file",filename="CALL_RETURN_TO.csv",delimiter="\t")
 
 CallReturnTo(?recv, ?to) :-
     OptVirtualMethodInvocationBase(?invo, ?recv),
@@ -35,7 +35,7 @@ CallReturnTo(?recv, ?to) :-
 
 
 .decl CallSiteIn(?invo:MethodInvocation, ?method:Method)
-.output CallSiteIn(IO="file",filename="CALLSITEIN.csv",delimiter=", ")
+.output CallSiteIn(IO="file",filename="CALLSITEIN.csv",delimiter="\t")
 
 CallSiteIn(?invo, ?method) :-
     Reachable(?method),
@@ -43,11 +43,11 @@ CallSiteIn(?invo, ?method) :-
     isMethodInvocation(?invo).
 
 
-.output DirectSuperclass(IO="file",filename="DIRECT_SUPER_TYPE.csv",delimiter=", ")
+.output DirectSuperclass(IO="file",filename="DIRECT_SUPER_TYPE.csv",delimiter="\t")
 
 
 .decl InstanceInvocationReceiver(?invo:MethodInvocation, ?recv:Var)
-.output InstanceInvocationReceiver(IO="file",filename="INST_CALL_RECV.csv",delimiter=", ")
+.output InstanceInvocationReceiver(IO="file",filename="INST_CALL_RECV.csv",delimiter="\t")
 
 InstanceInvocationReceiver(?invo, ?recv) :-
     OptVirtualMethodInvocationBase(?invo, ?recv);
@@ -55,10 +55,10 @@ InstanceInvocationReceiver(?invo, ?recv) :-
 
 
 .decl Instance_Method(?method:Method)
-.output Instance_Method(IO="file",filename="INST_METHODS.csv",delimiter=", ")
+.output Instance_Method(IO="file",filename="INST_METHODS.csv",delimiter="\t")
 
 .decl This_Var(?method:Method, ?var:Var)
-.output This_Var(IO="file",filename="THIS_VAR.csv",delimiter=", ")
+.output This_Var(IO="file",filename="THIS_VAR.csv",delimiter="\t")
 
 This_Var(?method, ?this),
 Instance_Method(?method) :-
@@ -67,21 +67,21 @@ Instance_Method(?method) :-
 
 
 .decl InstanceLoad(?to:Var, ?baseObj:Value, ?field:Field)
-.output InstanceLoad(IO="file",filename="INSTANCE_LOAD.csv",delimiter=", ")
+.output InstanceLoad(IO="file",filename="INSTANCE_LOAD.csv",delimiter="\t")
 
 InstanceLoad(?to, ?baseObj, ?field) :-
     LoadHeapInstanceField(_, ?to, ?field, _, ?baseObj).
 
 
 .decl InstanceStore(?baseObj:Value, ?field:Field, ?from:Var)
-.output InstanceStore(IO="file",filename="INSTANCE_STORE.csv",delimiter=", ")
+.output InstanceStore(IO="file",filename="INSTANCE_STORE.csv",delimiter="\t")
 
 InstanceStore(?baseObj, ?field, ?from) :-
     StoreHeapInstanceField(?field, _, ?baseObj, _, ?from).
 
 
 .decl InterproceduralAssign(?to:Var, ?from:Var)
-.output InterproceduralAssign(IO="file",filename="INTERPROCEDURAL_ASSIGN.csv",delimiter=", ")
+.output InterproceduralAssign(IO="file",filename="INTERPROCEDURAL_ASSIGN.csv",delimiter="\t")
 
 InterproceduralAssign(?to, ?from) :- OptArgAssign(_, ?to, _, ?from, _).
 
@@ -90,7 +90,7 @@ InterproceduralAssign(?to, ?from) :- OptReturnAssign(_, ?to, _, ?from).
 #endif // INFORMATION_FLOW
 
 .decl LocalAssign(?to:Var, ?from:Var)
-.output LocalAssign(IO="file",filename="LOCAL_ASSIGN.csv",delimiter=", ")
+.output LocalAssign(IO="file",filename="LOCAL_ASSIGN.csv",delimiter="\t")
 
 LocalAssign(?to, ?from) :-
     AssignLocal(?from, ?to, ?inmethod),
@@ -99,11 +99,11 @@ LocalAssign(?to, ?from) :-
 LocalAssign(?to, ?from) :- OptAssignCast(_, ?to, ?from).
 
 
-.output Method_Modifier(IO="file",filename="METHOD_MODIFIER.csv",delimiter=", ")
+.output Method_Modifier(IO="file",filename="METHOD_MODIFIER.csv",delimiter="\t")
 
 
 .decl ObjType(?obj:Value, ?type:Type)
-.output ObjType(IO="file",filename="OBJ_TYPE.csv",delimiter=", ")
+.output ObjType(IO="file",filename="OBJ_TYPE.csv",delimiter="\t")
 
 ObjType(?obj, ?type) :-
     Value_Type(?obj, ?type),
@@ -111,10 +111,10 @@ ObjType(?obj, ?type) :-
 
 
 .decl ObjectAssign(?obj:Value, ?var:Var)
-.output ObjectAssign(IO="file",filename="OBJECT_ASSIGN.csv",delimiter=", ")
+.output ObjectAssign(IO="file",filename="OBJECT_ASSIGN.csv",delimiter="\t")
 
 .decl ObjectIn(?object:Value, ?inmethod:Method)
-.output ObjectIn(IO="file",filename="OBJECT_IN.csv",delimiter=", ")
+.output ObjectIn(IO="file",filename="OBJECT_IN.csv",delimiter="\t")
 
 ObjectIn(?obj, ?inmethod),
 ObjectAssign(?obj, ?var) :-
@@ -123,7 +123,7 @@ ObjectAssign(?obj, ?var) :-
 
 
 .decl Formal_Param(?method:Method, ?param:Var)
-.output Formal_Param(IO="file",filename="PARAMS.csv",delimiter=", ")
+.output Formal_Param(IO="file",filename="PARAMS.csv",delimiter="\t")
 
 Formal_Param(?method, ?param) :-
     FormalParam(_, ?method, ?param),
@@ -131,21 +131,21 @@ Formal_Param(?method, ?param) :-
 
 
 .decl RetVar(?method:Method, ?ret:Var)
-.output RetVar(IO="file",filename="RET_VARS.csv",delimiter=", ")
+.output RetVar(IO="file",filename="RET_VARS.csv",delimiter="\t")
 
 RetVar(?method, ?ret) :-
     ReturnVar(?ret, ?method),
     Reachable(?method).
 
 
-.output HeapAllocation_ContextInsensitive(IO="file",filename="SPECIAL_OBJECTS.csv",delimiter=", ")
+.output HeapAllocation_ContextInsensitive(IO="file",filename="SPECIAL_OBJECTS.csv",delimiter="\t")
 
 
 .decl VarIn(?var:Var, ?method:Method)
-.output VarIn(IO="file",filename="VAR_IN.csv",delimiter=", ")
+.output VarIn(IO="file",filename="VAR_IN.csv",delimiter="\t")
 
 VarIn(?var, ?method) :-
     Reachable(?method),
     Var_DeclaringMethod(?var, ?method).
 
-.output Stats_Simple_InsensVarPointsTo(IO="file",filename="VPT.csv",delimiter=", ")
+.output Stats_Simple_InsensVarPointsTo(IO="file",filename="VPT.csv",delimiter="\t")
