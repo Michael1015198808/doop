@@ -108,6 +108,10 @@ VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
  .plan 2:(3,2,1,4)
 
 .decl OptAssignCast(?type:Type, ?to:Var, ?from:Var)
+#ifdef X_ZIPPER_INS_TRACKER
+.output OptAssignCast(IO="file",filename="ASSIGN_CAST.csv", delimiter="\t")
+#endif // X_ZIPPER_INS_TRACKER
+
 OptAssignCast(?type, ?to, ?from) :-
   Reachable(?inmethod),
   AssignCast(?type, ?from, ?to, ?inmethod).
@@ -116,6 +120,12 @@ OptAssignCast(?type, ?to, ?from) :-
  * Load/Store instance fields
  */
 
+#ifdef X_ZIPPER_INS_TRACKER
+.decl InstanceLoadCause(?to:Var, ?basevalue:Value, ?sig:Field, ?base:Var)
+.output InstanceLoadCause(IO="file",filename="INSTANCE_LOAD_CAUSE.csv", delimiter="\t")
+
+InstanceLoadCause(?to, ?basevalue, ?sig, ?base), // to = base.sig, where base points to basevalue
+#endif // X_ZIPPER_INS_TRACKER
 LoadHeapInstanceField(?ctx, ?to, ?sig, ?basehctx, ?basevalue) :-
   LoadInstanceField(?base, ?sig, ?to, _),
   VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base).
@@ -340,6 +350,12 @@ NotEmptyArrayValue(?heapValue) :-
 NotEmptyArrayValue(?value) :-
   Value_isNonHeap(?value).
 
+#ifdef X_ZIPPER_INS_TRACKER
+.decl ArrayLoadCause(?to:Var, ?basevalue:Value, ?base:Var)
+.output ArrayLoadCause(IO="file",filename="ARRAY_LOAD_CAUSE.csv", delimiter="\t")
+
+ArrayLoadCause(?to, ?basevalue, ?base), // to = base[?], where base points to basevalue
+#endif // X_ZIPPER_INS_TRACKER
 LoadHeapArrayIndex(?ctx, ?to, ?basehctx, ?basevalue) :-
   ReachableLoadArrayIndexBase(?base),
   OptLoadArrayIndex(?to, ?base),

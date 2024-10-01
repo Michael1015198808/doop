@@ -484,6 +484,14 @@ class DoopAnalysisFamily implements AnalysisFamily {
 					description: "Enable the analysis to be the pre-analysis of Zipper, and outputs the information required by Zipper.",
 					forPreprocessor: true
 			),
+			/* for zipper-ins */
+			new BooleanAnalysisOption(
+					id: "X_ZIPPER_INS_TRACKER",
+					name: "Xzipper-ins-tracker",
+					group: GROUP_EXPERIMENTAL,
+					description: "Used with zipper, to output the cause instructions of object/array load",
+					forPreprocessor: true
+			),
 			new AnalysisOption(
 					id: "X_ZIPPER",
 					name: "Xzipper",
