@@ -530,8 +530,7 @@ StoreHeapArrayIndex(?basehctx, ?basevalue, ?ctx, ?from) :-
 StoreHeapArrayIndex(?basehctx, ?basevalue, ?wildCtx, ?from),
 StoreHeapArrayIndex(?basehctx, ?basevalue, ?ctx, ?from) :-
   ReachableStoreArrayIndexBase(?base),
-  StoreArrayIndex(_, ?base, ?inmethod),
-  OptStoreArrayIndex(?from, ?base),
+  StoreArrayIndex(?from, ?base, ?inmethod),
   ReachableContext(?ctx, ?inmethod),
   VarPointsTo(?basehctx, ?basevalue, ?wildCtx, ?base),
   isWildcardContext(?wildCtx).
@@ -706,15 +705,18 @@ VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
 // Instruction f(actual) => f(formal)
 // Unadjustable
 VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
-  (
-    OptArgVarPointsTo(?hctx, ?value, ?fromCtx, ?from); (
-    OptArgVarPointsTo(?hctx, ?value, ?wildCtx, ?from),
-    isWildcardContext(?wildCtx)
-  )),
+  OptArgVarPointsTo(?hctx, ?value, ?fromCtx, ?from),
   OptArgAssign(?toCtx, ?to, ?fromCtx, ?from, ?allowedType),
   Value_Type(?value, ?type),
   basic.SubtypeOf(?type, ?allowedType).
-  // .plan 1:(2,1,3,4)
+  .plan 1:(2,1,3,4)
+VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
+  OptArgVarPointsTo(?hctx, ?value, ?wildCtx, ?from),
+  OptArgAssign(?toCtx, ?to, _, ?from, ?allowedType),
+  Value_Type(?value, ?type),
+  basic.SubtypeOf(?type, ?allowedType),
+  isWildcardContext(?wildCtx).
+  .plan 1:(2,1,3,4,5)
 
 VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
   OptArgVarPointsTo(?hctx, ?value, _, ?from),
