@@ -69,7 +69,11 @@
 #ifdef INSTRUCTION_LEVEL
 #include "context-sensitivity-instruction-level.dl"
 #else
+#ifdef COMPRESSION
+#include "context-sensitivity-compression.dl"
+#else
 #include "context-sensitivity.dl"
+#endif // COMPRESSION
 #endif // INSTRUCTION_LEVEL
 #include "full-call-graph.dl"
 #include "export.dl"

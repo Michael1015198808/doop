@@ -812,9 +812,71 @@ class DoopAnalysisFamily implements AnalysisFamily {
 
 			//Information-flow, etc.
 			new AnalysisOption<String>(
+					id: "LOADARRAYINDEX_DUMP",
+					name: "loadarrayindex-dump",
+					description: "Dump facts from LoadArrayIndex",
+					forPreprocessor: true
+			),
+			new AnalysisOption<String>(
+					id: "COMPRESSION",
+					name: "compression",
+					description: "Enable the compression mechanism.",
+					forPreprocessor: true
+			),
+			new AnalysisOption<String>(
 					id: "INSTRUCTION_LEVEL",
 					name: "instruction-level",
 					description: "Enable instruction-level points-to analysis reasoning.",
+					forPreprocessor: true
+			),
+			new AnalysisOption(
+					id: "INS_ASSIGNHEAPALLOCATION",
+					name: "ins-assignheapallocation",
+					group: GROUP_EXPERIMENTAL,
+					description: "Use file with precision-critical heap allocation selected, these allocations are analyzed context-insensitively.",
+					argName: "FILE",
+					argInputType: InputType.MISC,
+					forCacheID: true,
+					forPreprocessor: true
+			),
+			new AnalysisOption(
+					id: "INS_ASSIGNLOCAL",
+					name: "ins-assignlocal",
+					group: GROUP_EXPERIMENTAL,
+					description: "Use file with precision-critical local assignments selected, these assignments are analyzed context-insensitively.",
+					argName: "FILE",
+					argInputType: InputType.MISC,
+					forCacheID: true,
+					forPreprocessor: true
+			),
+			new AnalysisOption(
+					id: "INS_ASSIGNCAST",
+					name: "ins-assigncast",
+					group: GROUP_EXPERIMENTAL,
+					description: "Use file with precision-critical local casts selected, these casts are analyzed context-insensitively.",
+					argName: "FILE",
+					argInputType: InputType.MISC,
+					forCacheID: true,
+					forPreprocessor: true
+			),
+			new AnalysisOption(
+					id: "INS_LOADINSTANCEFIELD",
+					name: "ins-loadinstancefield",
+					group: GROUP_EXPERIMENTAL,
+					description: "Use file with precision-critical field loads selected, these loads are analyzed context-insensitively.",
+					argName: "FILE",
+					argInputType: InputType.MISC,
+					forCacheID: true,
+					forPreprocessor: true
+			),
+			new AnalysisOption(
+					id: "INS_LOADARRAYINDEX",
+					name: "ins-loadarrayindex",
+					group: GROUP_EXPERIMENTAL,
+					description: "Use file with precision-critical array loads selected, these loads are analyzed context-insensitively.",
+					argName: "FILE",
+					argInputType: InputType.MISC,
+					forCacheID: true,
 					forPreprocessor: true
 			),
 			new AnalysisOption<String>(
