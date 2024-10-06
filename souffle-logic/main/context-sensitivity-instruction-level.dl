@@ -966,6 +966,7 @@ Instruction_Throws(?hctx, ?value, ?callerCtx, ?invocation) :-
 
 
 // See rules.dl
+#ifdef TAMIFLEX
 TamiflexCallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?callee),
 VarPointsTo(?hctx, ?value, ?calleeCtx, ?this) :-
   Tamiflex_Invoke(?callerCtx, ?invocation, ?callee),
@@ -975,6 +976,7 @@ VarPointsTo(?hctx, ?value, ?calleeCtx, ?this) :-
   ThisVar(?callee, ?this),
   isWildcardContext(?wildCtx),
   isImmutableContext(?calleeCtx).
+#endif
 
 // // VarPointsTo(?hctx, ?value, ?immCtx, ?param) :-
 // //   Instruction_Throws(?hctx, ?value, _, ?insn),
