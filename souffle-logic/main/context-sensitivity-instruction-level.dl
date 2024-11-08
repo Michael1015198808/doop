@@ -20,20 +20,30 @@ isContext(?ctx) :-
   configuration.InitContextRequest(?s),
   configuration.InitContextResponse(?s, ?ctx).
 
+#ifdef INS_ASSIGNHEAPALLOCATION
 .decl SensitiveAssignHeapAllocation(?heap:symbol, ?to:symbol)
 .input SensitiveAssignHeapAllocation(IO="file",filename="InsAssignHeapAllocation.facts",delimiter="\t")
+#endif
 
+#ifdef INS_ASSIGNLOCAL
 .decl SensitiveAssignLocal(?from:symbol, ?to:symbol)
 .input SensitiveAssignLocal(IO="file",filename="InsAssignLocal.facts",delimiter="\t")
+#endif
 
+#ifdef INS_ASSIGNCAST
 .decl SensitiveAssignCast(?from:symbol, ?to:symbol)
 .input SensitiveAssignCast(IO="file",filename="InsAssignCast.facts",delimiter="\t")
+# endif
 
+#ifdef INS_LOADINSTANCEFIELD
 .decl SensitiveLoadInstanceField(?to:symbol, ?base:symbol, ?sig:symbol)
 .input SensitiveLoadInstanceField(IO="file",filename="InsLoadInstanceField.facts",delimiter="\t")
+#endif
 
+#ifdef INS_LOADARRAYINDEX
 .decl SensitiveLoadArrayIndex(?to:symbol, ?base:symbol)
 .input SensitiveLoadArrayIndex(IO="file",filename="InsLoadArrayIndex.facts",delimiter="\t")
+#endif
 
 #ifdef LOADARRAYINDEX_DUMP
 
@@ -93,11 +103,17 @@ configuration.RecordContextRequest(?ctx, ?heapValue, ?var) :-
 
 // Instruction inmethod:var = new Object() => heapValue
 // Adjustable
+#ifndef INS_ASSIGNHEAPALLOCATION
+VarPointsTo(?newHCtx, ?heapValue, ?ctx, ?var) :-
+  configuration.RecordContextRequest(?ctx, ?heapValue, ?var),
+  configuration.RecordContextResponse(?ctx, ?heapValue, ?var, ?newHCtx).
+#else
 // SEN
 VarPointsTo(?newHCtx, ?heapValue, ?ctx, ?var) :-
   configuration.RecordContextRequest(?ctx, ?heapValue, ?var),
   configuration.RecordContextResponse(?ctx, ?heapValue, ?var, ?newHCtx),
   SensitiveAssignHeapAllocation(?heapValue, ?var).
+
 // INS
 VarPointsTo(?hctx, ?heapValue, ?immCtx, ?var) :-
   configuration.RecordContextRequest(?ctx, ?heapValue, ?var),
@@ -156,16 +172,33 @@ VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
 // Instruction inmethod:to = from
 // Adjustable
 // SEN
+#ifndef INS_ASSIGNLOCAL
 VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   VarPointsTo(?hctx, ?value, ?ctx, ?from),
+  AssignLocal(?from, ?to, _).
+#else
+
+.decl SensitiveAssignLocalFiltered(?from:symbol, ?to:symbol)
+SensitiveAssignLocalFiltered(?from, ?to) :-
   AssignLocal(?from, ?to, _),
   SensitiveAssignLocal(?from, ?to).
-// INS
+
 VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
-  VarPointsTo(?hctx, ?value, _, ?from),
-  AssignLocal(?from, ?to, _),
+  VarPointsTo(?hctx, ?value, ?ctx, ?from),
+  SensitiveAssignLocalFiltered(?from, ?to).
+
+.decl InsensitiveAssignLocalFiltered(?from:symbol, ?to:symbol, ?ctx:configuration.Context)
+InsensitiveAssignLocalFiltered(?from, ?to, ?wildCtx) :-
   !SensitiveAssignLocal(?from, ?to),
-  isWildcardContext(?ctx).
+  AssignLocal(?from, ?to, _),
+  isWildcardContext(?wildCtx).
+.plan 0:(2,1)
+// INS
+VarPointsTo(?hctx, ?value, ?wildCtx, ?to) :-
+  VarPointsTo(?hctx, ?value, _, ?from),
+  InsensitiveAssignLocalFiltered(?from, ?to, ?wildCtx).
+.plan 0:(2,1)
+#endif
 
 /**
  * Cast assignments
@@ -173,6 +206,14 @@ VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
 
 // Instruction inmethod:to = (type) from
 // Adjustable
+#ifndef INS_ASSIGNCAST
+VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
+  OptAssignCast(?type, ?to, ?from),
+  VarPointsTo(?hctx, ?value, ?ctx, ?from),
+  Value_Type(?value, ?valuetype),
+  basic.SupertypeOf(?type, ?valuetype).
+  .plan 2:(3,2,1,4)
+#else
 // SEN
 VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   OptAssignCast(?type, ?to, ?from),
@@ -190,6 +231,7 @@ VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   !SensitiveAssignCast(?from, ?to),
   isWildcardContext(?ctx).
   .plan 2:(3,2,1,4,5)
+#endif
 
 .decl OptAssignCast(?type:Type, ?to:Var, ?from:Var)
 OptAssignCast(?type, ?to, ?from) :-
@@ -202,28 +244,50 @@ OptAssignCast(?type, ?to, ?from) :-
 
 // Instruction inmethod:to = base.sig
 // Adjustable
-// SEN
+#ifndef INS_LOADINSTANCEFIELD
 LoadHeapInstanceField(?ctx, ?to, ?sig, ?basehctx, ?basevalue) :-
   LoadInstanceField(?base, ?sig, ?to, _),
-  VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base),
+  VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base).
+#else
+// SEN
+.decl SensitiveLoadInstanceFieldFiltered(?to:symbol, ?base:symbol, ?sig:symbol)
+SensitiveLoadInstanceFieldFiltered(?to, ?base, ?sig) :-
+  LoadInstanceField(?base, ?sig, ?to, _),
   SensitiveLoadInstanceField(?to, ?base, ?sig).
+
+LoadHeapInstanceField(?ctx, ?to, ?sig, ?basehctx, ?basevalue) :-
+  VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base),
+  SensitiveLoadInstanceFieldFiltered(?to, ?base, ?sig).
+
 // INS
 LoadHeapInstanceField(?ctx, ?to, ?sig, ?basehctx, ?basevalue) :-
   LoadInstanceField(?base, ?sig, ?to, _),
   VarPointsTo(?basehctx, ?basevalue, _, ?base),
   !SensitiveLoadInstanceField(?to, ?base, ?sig),
   isWildcardContext(?ctx).
+  .plan 0:(2,1,3)
+#endif
 
 // Instruction inmethod:base.sig = from
 // Adjustable
 // SEN
-StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?wildCtx, ?from),
+
 StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?ctx, ?from) :-
   StoreInstanceField(?from, ?base, ?signature, _),
-  VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base),
+  VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base).
+  .plan 0:(2,1)
+StoreHeapInstanceField(?signature,?basehctx,?basevalue,?ctx,?from) :-
+  StoreInstanceField(?from, ?base, ?signature, ?inmethod),
+  VarPointsTo(?basehctx, ?basevalue, ?wildCtx, ?base),
+  ReachableContext(?ctx, ?inmethod),
   isWildcardContext(?wildCtx).
+  .plan 0:(2,1,3,4), 1:(1,3,4,2)
 
-StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?ctx, ?from),
+StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?wildCtx, ?from) :-
+  StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?ctx, ?from),
+  isWildcardContext(?wildCtx).
+  .plan 0:(2,1)
+
 StoreHeapInstanceField(?signature, ?basehctx, ?basevalue, ?wildCtx, ?from) :-
   StoreInstanceField(?from, ?base, ?signature, ?inmethod),
   VarPointsTo(?basehctx, ?basevalue, ?wildCtx, ?base),
@@ -339,9 +403,7 @@ VarPointsTo(?hctx, ?value, ?ctx, ?to) :-
   LoadStaticField(?sig, ?to, ?inmethod),
   isWildcardContext(?ctx),
   Reachable(?inmethod).
-#ifndef X_CONTEXT_REMOVER
-  // .plan 1:(3,2,1)
-#endif // X_CONTEXT_REMOVER
+  .plan 0:(4,2,1,3), 1:(1,2,4,3)
 
 /**
  * Store static fields
@@ -459,7 +521,21 @@ NotEmptyArrayValue(?value) :-
 
 // Instruction inmethod: to = base[]
 // Adjustable
+#ifndef INS_LOADARRAYINDEX
+LoadHeapArrayIndex(?ctx, ?to, ?basehctx, ?basevalue) :-
+  ReachableLoadArrayIndexBase(?base),
+  OptLoadArrayIndex(?to, ?base),
+  VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base).
+#else
 // SEN
+#ifdef TESTING
+// .decl SensitiveLoadArrayIndexFiltered(?to:symbol, ?base:symbol, ?sig:symbol)
+// SensitiveLoadArrayIndexFiltered(?base, ?sig, ?to) :-
+//   LoadArrayIndex(?base, ?sig, ?to, _),
+//   SensitiveLoadArrayIndex(?to, ?base, ?sig).
+#else
+#endif
+
 LoadHeapArrayIndex(?ctx, ?to, ?basehctx, ?basevalue) :-
   ReachableLoadArrayIndexBase(?base),
   OptLoadArrayIndex(?to, ?base),
@@ -472,6 +548,7 @@ LoadHeapArrayIndex(?immCtx, ?to, ?basehctx, ?basevalue) :-
   VarPointsTo(?basehctx, ?basevalue, _, ?base),
   !SensitiveLoadArrayIndex(?to, ?base),
   isWildcardContext(?immCtx).
+#endif
 
 // Instruction that loads elements from Var `base` to `to`
 OptLoadArrayIndex(?to, ?base) :-
@@ -520,14 +597,18 @@ ArrayIndexPointsTo(?hctx, ?value, ?basehctx, ?basevalue) :-
 // Instruction that stores Var `from` into array Var `base`
 // Adjustable
 // SEN
-StoreHeapArrayIndex(?basehctx, ?basevalue, ?wildCtx, ?from),
+StoreHeapArrayIndex(?basehctx, ?basevalue, ?wildCtx, ?from) :-
+  ReachableStoreArrayIndexBase(?base),
+  OptStoreArrayIndex(?from, ?base),
+  VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base),
+  isWildcardContext(?wildCtx).
+
 StoreHeapArrayIndex(?basehctx, ?basevalue, ?ctx, ?from) :-
   ReachableStoreArrayIndexBase(?base),
   OptStoreArrayIndex(?from, ?base),
   VarPointsTo(?basehctx, ?basevalue, ?ctx, ?base),
   isWildcardContext(?wildCtx).
 
-StoreHeapArrayIndex(?basehctx, ?basevalue, ?wildCtx, ?from),
 StoreHeapArrayIndex(?basehctx, ?basevalue, ?ctx, ?from) :-
   ReachableStoreArrayIndexBase(?base),
   StoreArrayIndex(?from, ?base, ?inmethod),
@@ -661,9 +742,8 @@ VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
 
 VarPointsTo(?hctx, ?value, ?toCtx, ?to) :-
   OptRetVarPointsTo(?hctx, ?value, ?wildCtx, ?from),
-  OptReturnAssign(?toCtx, ?to, _, ?from),
-  isWildcardContext(?wildCtx).
-  // .plan 1:(3,2,1)
+  isWildcardContext(?wildCtx),
+  OptReturnAssign(?toCtx, ?to, _, ?from).
 
 #endif // INFORMATION_FLOW
 
@@ -962,7 +1042,7 @@ Instruction_Throws(?hctx, ?value, ?callerCtx, ?invocation) :-
   ThrowPointsTo(?hctx, ?value, ?wildCtx, ?tomethod),
   CallGraphEdge(?callerCtx, ?invocation, ?calleeCtx, ?tomethod),
   isWildcardContext(?wildCtx).
-  .plan 1:(2,1,3)
+  .plan 0:(1,2,3),1:(2,3,1)
 
 
 // See rules.dl
