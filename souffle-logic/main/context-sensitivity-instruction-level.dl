@@ -21,8 +21,15 @@ isContext(?ctx) :-
   configuration.InitContextResponse(?s, ?ctx).
 
 #ifdef INS_ASSIGNHEAPALLOCATION
+.decl SensitiveAssignHeapAllocationRaw(?heap:symbol, ?to:symbol)
+.input SensitiveAssignHeapAllocationRaw(IO="file",filename="InsAssignHeapAllocation.facts",delimiter="\t")
+
 .decl SensitiveAssignHeapAllocation(?heap:symbol, ?to:symbol)
-.input SensitiveAssignHeapAllocation(IO="file",filename="InsAssignHeapAllocation.facts",delimiter="\t")
+SensitiveAssignHeapAllocation(?heap, ?to) :- SensitiveAssignHeapAllocationRaw(?heap, ?to).
+#ifndef NO_PATCH
+SensitiveAssignHeapAllocation("<java.io.FileReader: void <init>(java.io.File)>/new java.io.FileInputStream/0", "<java.io.FileReader: void <init>(java.io.File)>/$stack2").
+#endif
+
 #endif
 
 #ifdef INS_ASSIGNLOCAL
