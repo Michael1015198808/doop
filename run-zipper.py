@@ -34,7 +34,7 @@ ZIPPER_CP = ':'.join([
 ZIPPER_MAIN = 'ptatoolkit.zipper.Main'
 ZIPPER_PTA = 'ptatoolkit.zipper.doop.DoopPointsToAnalysis'
 ZIPPER_CACHE = 'cache/zipper'
-ZIPPER_OUT = 'results'
+ZIPPER_OUT = 'results/zipper'
 
 ZIPPER_THREAD = 4 # multiprocessing.cpu_count() # use multithreading to accelerate Zipper
 ZIPPER_MEMORY = '48g'
@@ -58,7 +58,14 @@ BOLD = '\033[1m'
 INS_LEVEL = False
 
 def runPreAnalysis(initArgs):
-    args = [DOOP, "--Xzipper-pre", "--Xzipper-ins-tracker" if INS_LEVEL else ""] + [a if a not in ANALYSES else PRE_ANALYSIS for a in initArgs]
+    argsCopy = [e for e in initArgs]
+    try:
+        i = argsCopy.index('--id')
+        argsCopy[i + 1] = argsCopy[i + 1] + '-zipper-pre'
+    except ValueError:
+        pass
+    
+    args = [DOOP, "--Xzipper-pre", "--Xzipper-ins-tracker" if INS_LEVEL else ""] + [a if a not in ANALYSES else PRE_ANALYSIS for a in argsCopy]
     cmd = ' '.join(args)
     print(YELLOW + BOLD + 'Running pre-analysis ...' + RESET)
     print("Pre-analysis cmd:")
@@ -137,8 +144,12 @@ def run(args):
         res = []
         express = None
         i = 0
+        global ZIPPER_CACHE
+        global ZIPPER_OUT
         while i < len(args):
             if args[i] == '-e':
+                ZIPPER_CACHE += '-e'
+                ZIPPER_OUT += '-e'
                 if isFloat(args[i+1]):
                     express = float(args[i+1])
                     i += 1
@@ -146,6 +157,7 @@ def run(args):
                     express = 0.05 # default threshold for Zipper-e
             elif args[i] == '--ins-level':
                 REQUIRED_QURIES.extend(['ASSIGN_CAST', 'INSTANCE_LOAD_CAUSE', 'ARRAY_LOAD_CAUSE'])
+                REQUIRED_QURIES.extend(['LOAD_INSTANCE_FIELD', 'OPT_LOAD_ARRAY_INDEX']) # for debug
                 global INS_LEVEL
                 INS_LEVEL = True
             elif args[i] == "--souffle-jobs":
@@ -154,9 +166,17 @@ def run(args):
                 res.append(args[i])
                 res.append(args[i+1])
                 i += 1
+            elif args[i] == "--id":
+                global APP
+                APP = args[i+1]
+                res.append(args[i])
+                res.append(args[i+1])
+                i += 1
             else:
                 res.append(args[i])
             i += 1
+        ZIPPER_CACHE = os.path.join(ZIPPER_CACHE, APP)
+        ZIPPER_OUT = os.path.join(ZIPPER_OUT, APP)
         return res, express
 
     def isFloat(s):
