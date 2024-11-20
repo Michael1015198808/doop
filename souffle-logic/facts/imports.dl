@@ -1148,6 +1148,10 @@ MockHeapConsMacro(?heap, ?type) :-
   ?heap = "<<main-thread>>",
   ?type = "java.lang.Thread".
 
+MockHeapConsMacro(?heap, ?type) :-
+  ?heap = "<<pystring-object>>",
+  ?type = "org.python.core.PyString".
+
 // Special heaps for contexts
 // Note: the type is necessary (java.lang.Object), but never used. It could be
 // anything. It also needs to be an existing type, otherwise the sanity checks
