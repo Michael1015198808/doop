@@ -149,3 +149,9 @@ VarIn(?var, ?method) :-
     Var_DeclaringMethod(?var, ?method).
 
 .output Stats_Simple_InsensVarPointsTo(IO="file",filename="VPT.csv",delimiter="\t")
+
+// For removing the approximations made by the original zipper
+.output LoadInstanceField(IO="file", filename="LOAD_INSTANCE_FIELD.csv", delimiter="\t")
+
+// For removing the approximations made by the original zipper
+.output OptLoadArrayIndex(IO="file", filename="OPT_LOAD_ARRAY_INDEX.csv", delimiter="\t")
