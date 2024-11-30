@@ -4,6 +4,8 @@
 #include "../../main/single-phase-analysis.dl"
 #include "../../main/configuration.dl"
  
+#define UNIQUE_HCONTEXT "<<unique-hcontext>>"
+ 
 // In this analysis, the real context is a pair of MethodInvocations and the
 // real heap context a single MethodInvocation. Keeping mapping functions is
 // the way to handle analyses where HContext = Context (since the language
@@ -65,7 +67,4 @@
 
   isInstruction("<<immutable-context>>").
   isMethodInvocation("<<immutable-context>>").
-
-  isInstruction("<<immutable-hcontext>>").
-  isMethodInvocation("<<immutable-hcontext>>").
 }
