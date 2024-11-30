@@ -20,21 +20,33 @@ isContext(?ctx) :-
   configuration.InitContextRequest(?s),
   configuration.InitContextResponse(?s, ?ctx).
 
+// configuration.InitHContextRequest("<<wildcard-context>>").
+// .decl isWildcardHContext(?ctx:configuration.HContext)
+// isWildcardHContext(?hctx),
+// isHContext(?hctx) :-
+//   ?s = "<<wildcard-context>>",
+//   configuration.InitHContextRequest(?s),
+//   configuration.InitHContextResponse(?c, ?hctx).
+
 #ifdef INS_ASSIGNHEAPALLOCATION
-.decl SensitiveAssignHeapAllocationRaw(?heap:symbol, ?to:symbol)
-.input SensitiveAssignHeapAllocationRaw(IO="file",filename="InsAssignHeapAllocation.facts",delimiter="\t")
-
 .decl SensitiveAssignHeapAllocation(?heap:symbol, ?to:symbol)
-SensitiveAssignHeapAllocation(?heap, ?to) :- SensitiveAssignHeapAllocationRaw(?heap, ?to).
-#ifndef NO_PATCH
-SensitiveAssignHeapAllocation("<java.io.FileReader: void <init>(java.io.File)>/new java.io.FileInputStream/0", "<java.io.FileReader: void <init>(java.io.File)>/$stack2").
-#endif
-
+.input SensitiveAssignHeapAllocation(IO="file",filename="InsAssignHeapAllocation.facts",delimiter="\t")
+#ifdef X_ZIPPER
+SensitiveAssignHeapAllocation(?heap, ?to) :-
+  !ZipperPrecisionCriticalMethod(?inmethod),
+  AssignHeapAllocation(?heap, ?to, ?inmethod).
+#endif // X_ZIPPER
 #endif
 
 #ifdef INS_ASSIGNLOCAL
 .decl SensitiveAssignLocal(?from:symbol, ?to:symbol)
 .input SensitiveAssignLocal(IO="file",filename="InsAssignLocal.facts",delimiter="\t")
+#ifdef X_ZIPPER
+SensitiveAssignLocal(?from, ?to) :-
+  !ZipperPrecisionCriticalMethod(?inmethod),
+  AssignLocal(?from, ?to, ?inmethod).
+#endif // X_ZIPPER
+
 #endif
 
 #ifdef INS_ASSIGNCAST
@@ -45,6 +57,11 @@ SensitiveAssignHeapAllocation("<java.io.FileReader: void <init>(java.io.File)>/n
 #ifdef INS_LOADINSTANCEFIELD
 .decl SensitiveLoadInstanceField(?to:symbol, ?base:symbol, ?sig:symbol)
 .input SensitiveLoadInstanceField(IO="file",filename="InsLoadInstanceField.facts",delimiter="\t")
+#ifdef X_ZIPPER
+SensitiveLoadInstanceField(?to, ?base, ?sig) :-
+  !ZipperPrecisionCriticalMethod(?inmethod),
+  LoadInstanceField(?base, ?sig, ?to, ?inmethod).
+#endif // X_ZIPPER
 #endif
 
 #ifdef INS_LOADARRAYINDEX
