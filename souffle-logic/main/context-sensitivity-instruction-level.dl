@@ -145,6 +145,7 @@ VarPointsTo(?hctx, ?heapValue, ?immCtx, ?var) :-
   isWildcardContext(?immCtx),
   isImmutableHContext(?hctx),
   !SensitiveAssignHeapAllocation(?heapValue, ?var).
+#endif
 
 // Instruction inmethod:var = new Object() => heapValue
 // Unadjustable
