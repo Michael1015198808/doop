@@ -804,6 +804,12 @@ class DoopAnalysisFamily implements AnalysisFamily {
 
 			//Information-flow, etc.
 			new AnalysisOption<String>(
+					id: "NO_PATCH",
+					name: "no-patch",
+					description: "An option to disable a patch, brings performance boost with precision loss",
+					forPreprocessor: true
+			),
+			new AnalysisOption<String>(
 					id: "LOADARRAYINDEX_DUMP",
 					name: "loadarrayindex-dump",
 					description: "Dump facts from LoadArrayIndex",
