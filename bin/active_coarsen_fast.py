@@ -26,6 +26,10 @@ parser.add_argument(
     help="Fraction of the termination condition of Active Coarsening."
 )
 parser.add_argument(
+    "--precision-lose", type=float,
+    help="Fraction of the precision restriction"
+)
+parser.add_argument(
     "--fast", action="store_true",
     help="Whether to add the speed restriction."
 )
@@ -56,8 +60,16 @@ parser.add_argument(
     help="(Used if the algorithm terminated abnormally) Continue from the given iteration",
 )
 parser.add_argument(
+    "--last-phase", type=str, default="active",
+    help="(Used if the algorithm terminated abnormally) Continue from the given phase",
+)
+parser.add_argument(
     "--MCMC", action="store_true",
     help="Whether to run MCMC."
+)
+parser.add_argument(
+    "--MCMC-label", type=str, default=None,
+    help="The directory to run MCMC."
 )
 parser.add_argument(
     "--mcmc-k", type=float,
@@ -147,18 +159,20 @@ class MCMCCoarsen:
 
     def generate_abs(self, i):
         abs_path = os.path.join(self.COARSEN_DIR, str(i), f"database/ZipperPrecisionCriticalMethod.facts")
-        alpha = 2e-4
+        alpha = 1e-3
         if i == 0:
             print(f"{alpha = :.0e} {self.pts_k = :.0e} {self.param_a = :g}")
-        self.new_param = [
-            method
-            for method in self.reachable
-            if (
-                (random.random() < (1 - alpha))
-                if method in self.old_param else
-                (random.random() < alpha / self.param_a)
-            )
-        ]
+        self.new_param = self.reachable
+        while self.new_param == self.reachable:
+            self.new_param = [
+                method
+                for method in self.reachable
+                if (
+                    (random.random() < (1 - alpha))
+                    if method in self.old_param else
+                    (random.random() < alpha / self.param_a)
+                )
+            ]
         with open(abs_path, "w") as f:
             print("".join(self.new_param), end="", file=f)
         return abs_path, len(self.new_param)
@@ -185,6 +199,7 @@ if __name__ == "__main__":
     benchmark_full = args.benchmark
     metrics_lines = args.metrics_lines
     loops = args.loops
+    lose = args.precision_lose
     assert len(loops) <= 2, "--loops only accept 1 or 2 arguments!"
     assert not (args.fast and args.MCMC)
     keep = args.keep
@@ -222,7 +237,7 @@ if __name__ == "__main__":
 
         sen_pts_to_cnt = 1e11
         for Algorithm, DOOP_OUT in (phases := [
-            (MCMCCoarsen, f"{COARSEN_OUT}/{benchmark_full}-{idx}/MCMC"),
+            (MCMCCoarsen, f"{COARSEN_OUT}/{benchmark_full}-{idx}/{args.MCMC_label or 'MCMC'}"),
         ] if args.MCMC else [
             (ActiveCoarsen, f"{COARSEN_OUT}/{benchmark_full}-{idx}/active"),
             (ScanCoarsen,   f"{COARSEN_OUT}/{benchmark_full}-{idx}/scan"),
@@ -231,17 +246,19 @@ if __name__ == "__main__":
                 algorithm = Algorithm(DOOP_OUT, reachable, args.mcmc_k, args.mcmc_a)
             else:
                 algorithm = Algorithm(DOOP_OUT, reachable)
+            i = -1
             if args.last != None:
-                with open(f"{COARSEN_OUT}/{benchmark_full}-{idx}/active/{args.last}/database/ZipperPrecisionCriticalMethod.facts") as f:
+                with open(f"{COARSEN_OUT}/{benchmark_full}-{idx}/{args.last_phase}/{args.last}/database/ZipperPrecisionCriticalMethod.facts") as f:
                     reachable = f.readlines()
                 algorithm.reachable = reachable
-                i = args.last
+                if (not args.MCMC) or args.last_phase.startswith("MCMC"):
+                    i = args.last
                 args.last = None
-            else:
-                i = -1
             os.makedirs(DOOP_OUT, exist_ok=True)
             while algorithm.working():
                 i += 1
+                if i % 100 == 0:
+                    print(datetime.datetime.now())
                 os.makedirs(f"{DOOP_OUT}/{i}/database", exist_ok=True)
                 abs_path, abs_cnt = algorithm.generate_abs(i)
                 trial_id = str(i)
@@ -305,9 +322,10 @@ disk footprint (KB)\tN/A""".strip(), file=f)
                         line1 = coarse_stat[lineno]
                         line2 = baseline_stat[lineno]
                         if line1 != line2:
-                            print(line1 == line2)
-                            print(line1, line2)
-                            flag = False
+                            if lose == None or (int(line1.split()[-1]) > int(line2.split()[-1]) * (1 + lose)):
+                                print(line1 == line2)
+                                print(line1, line2)
+                                flag = False
                     if fast:
                         if flag:
                             pts_to = int(coarse_stat[1].strip().split("\t")[-1])

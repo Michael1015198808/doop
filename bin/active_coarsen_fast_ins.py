@@ -26,6 +26,10 @@ parser.add_argument(
     help="Fraction of the termination condition of Active Coarsening."
 )
 parser.add_argument(
+    "--precision-lose", type=float,
+    help="Fraction of the precision restriction"
+)
+parser.add_argument(
     "--fast", action="store_true",
     help="Whether to add the speed restriction."
 )
@@ -57,6 +61,10 @@ parser.add_argument(
     help="(Used if the algorithm terminated abnormally) Continue from the given iteration",
 )
 parser.add_argument(
+    "--last-phase", type=str, default="active",
+    help="(Used if the algorithm terminated abnormally) Continue from the given phase",
+)
+parser.add_argument(
     "--heap-only", action="store_true",
     help="Whether to coarse heap allocations only."
 )
@@ -67,6 +75,10 @@ parser.add_argument(
 parser.add_argument(
     "--MCMC", action="store_true",
     help="Whether to run MCMC."
+)
+parser.add_argument(
+    "--MCMC-label", type=str, default=None,
+    help="The directory to run MCMC."
 )
 parser.add_argument(
     "--mcmc-k", type=float,
@@ -194,7 +206,7 @@ class MCMCCoarsen:
         print(sum(map(len, parameters)), "parameters")
 
     def generate_abs(self, i, ):
-        alpha = 2e-4
+        alpha = 1e-3
         if i == 0:
             print(f"{alpha = :.0e} {self.pts_k = :.0e} {self.param_a = :g}")
         self.new_param = [
@@ -238,6 +250,7 @@ if __name__ == "__main__":
     benchmark_full = args.benchmark
     metrics_lines = args.metrics_lines
     loops = args.loops
+    lose = args.precision_lose
     assert len(loops) <= 3, "--loops only accept 1 to 3 arguments!"
     assert not (args.heap_only and args.heap_exclude)
     assert not (args.fast and args.MCMC)
@@ -289,15 +302,16 @@ if __name__ == "__main__":
         print(f"Executing active coarsen on benchmark {benchmark_full}")
         # FULLY_SEN_DB = "/data/zyyan/ins_level/theoretical/active-coarsen-ins/bach-tradebeans-3/active/15436/database"
         parameters = []
-        for path in parameter_paths:
-            with open(os.path.join(FULLY_SEN_DB, path)) as f:
-                parameters.append(f.readlines())
+        if args.last == None:
+            for path in parameter_paths:
+                with open(os.path.join(FULLY_SEN_DB, path)) as f:
+                    parameters.append(f.readlines())
         with open(os.path.join(FULLY_SEN_DB, metrics_data)) as f:
             baseline_stat = f.read().splitlines()
 
         sen_pts_to_cnt = 1e11
         for Algorithm, DOOP_OUT in (phases := [
-            (MCMCCoarsen, f"{COARSEN_OUT}/{benchmark_full}-{idx}/MCMC"),
+            (MCMCCoarsen, f"{COARSEN_OUT}/{benchmark_full}-{idx}/{args.MCMC_label or 'MCMC'}"),
         ] if args.MCMC else [
             (ActiveCoarsen, f"{COARSEN_OUT}/{benchmark_full}-{idx}/active"),
             (ScanCoarsen,   f"{COARSEN_OUT}/{benchmark_full}-{idx}/scan"),
@@ -306,16 +320,15 @@ if __name__ == "__main__":
                 algorithm = Algorithm(DOOP_OUT, parameters, args.mcmc_k, args.mcmc_a)
             else:
                 algorithm = Algorithm(DOOP_OUT, parameters)
+            i = -1
             if args.last != None:
-                parameters = []
                 for path in paths:
-                    with open(os.path.join(f"{COARSEN_OUT}/{benchmark_full}-{idx}/active/{args.last}/database", path)) as f:
+                    with open(os.path.join(f"{COARSEN_OUT}/{benchmark_full}-{idx}/{args.last_phase}/{args.last}/database", path)) as f:
                         parameters.append(f.readlines())
                 algorithm.parameters = parameters
-                i = args.last
+                if (not args.MCMC) or args.last_phase.startswith("MCMC"):
+                    i = args.last
                 args.last = None
-            else:
-                i = -1
             os.makedirs(DOOP_OUT, exist_ok=True)
             while algorithm.working():
                 i += 1
@@ -391,9 +404,10 @@ disk footprint (KB)\tN/A""".strip(), file=f)
                         line1 = coarse_stat[lineno]
                         line2 = baseline_stat[lineno]
                         if line1 != line2:
-                            print(line1 == line2)
-                            print(line1, line2)
-                            flag = False
+                            if lose == None or (int(line1.split()[-1]) > int(line2.split()[-1]) * (1 + lose)):
+                                print(line1 == line2)
+                                print(line1, line2)
+                                flag = False
                     if args.fast:
                         if flag:
                             pts_to = int(coarse_stat[1].strip().split("\t")[-1])
