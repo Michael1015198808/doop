@@ -26,8 +26,8 @@ class SouffleScript {
 
 	Executor executor
 	File cacheDir
-	long compilationTime = 0L
-	long executionTime = 0L
+	double compilationTime = 0.0
+	double executionTime = 0.0
 	File scriptFile = null
 
 	SouffleScript(Executor executor, File cacheDir) {
@@ -190,6 +190,16 @@ class SouffleScript {
 		}
 		return ret
 	}
+	static double preciseTiming(Closure c) {
+		long now = System.currentTimeMillis()
+		try {
+			c.call()
+		} catch(e) {
+			throw e
+		}
+		// We measure time only in error-free cases
+		return (System.currentTimeMillis() - now) / 1000
+	}
 
 	def run(File analysisBinary, File factsDir, File outDir, long monitoringInterval,
 			Closure monitorClosure, SouffleOptions options) {
@@ -216,7 +226,7 @@ class SouffleScript {
 
 		log.debug "Execution command: ${cmd}"
 		log.info "Running analysis"
-		executionTime = Helper.timing {
+		executionTime = preciseTiming {
 			executor.enableMonitor(monitoringInterval, monitorClosure).execute(executionCommand).disableMonitor()
 		}
 		log.info "Analysis execution time (sec): $executionTime"

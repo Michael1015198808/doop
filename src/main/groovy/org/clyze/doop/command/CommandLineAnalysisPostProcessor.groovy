@@ -37,7 +37,7 @@ class CommandLineAnalysisPostProcessor implements AnalysisPostProcessor<DoopAnal
 
 		log.info "-- Runtime metrics --"
 		lines.sort()*.split(", ").each {
-			printf("%-80s %,d\n", it[0], it[1] as long)
+			printf("%-80s %.3f\n", it[0], it[1] as double)
 		}
 
 		if (!analysis.options.get('X_STATS_NONE').value && !analysis.options.get('DRY_RUN').value) {
